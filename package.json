@@ -2,5 +2,11 @@
   "name": "gymflow",
   "private": true,
   "packageManager": "pnpm@10.30.3",
-  "scripts": {}
+  "scripts": {},
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "prisma"
+    ]
+  }
 }
