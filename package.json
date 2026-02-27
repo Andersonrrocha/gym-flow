@@ -2,7 +2,11 @@
   "name": "gymflow",
   "private": true,
   "packageManager": "pnpm@10.30.3",
-  "scripts": {},
+  "scripts": {
+    "dev": "pnpm dev:api & pnpm dev:web",
+    "dev:api": "pnpm --filter @gymflow/api run start:dev",
+    "dev:web": "pnpm --filter @gymflow/web run dev"
+  },
   "pnpm": {
     "onlyBuiltDependencies": [
       "@prisma/engines",
