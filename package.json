@@ -4,7 +4,7 @@
   "packageManager": "pnpm@10.30.3",
   "scripts": {
     "dev": "pnpm dev:api & pnpm dev:web",
-    "dev:api": "pnpm --filter @gymflow/api run start:dev",
+    "dev:api": "PORT=3001 pnpm --filter @gymflow/api run start:dev",
     "dev:web": "pnpm --filter @gymflow/web run dev"
   },
   "pnpm": {
