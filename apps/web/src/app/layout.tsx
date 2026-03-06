@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getLocale } from "next-intl/server";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -6,13 +7,15 @@ export const metadata: Metadata = {
   description: "SaaS-ready workout tracking platform",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+
   return (
-    <html lang="pt-BR">
+    <html lang={locale} className="dark">
       <body className="antialiased">{children}</body>
     </html>
   );

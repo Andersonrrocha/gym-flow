@@ -1,0 +1,48 @@
+{
+  "Login": {
+    "title": "GymFlow",
+    "subtitle": "Faça login para continuar",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "seu@email.com",
+    "emailRequired": "E-mail é obrigatório.",
+    "emailInvalid": "Informe um e-mail válido.",
+    "passwordLabel": "Senha",
+    "passwordPlaceholder": "••••••••",
+    "passwordRequired": "Senha é obrigatória.",
+    "submit": "Entrar",
+    "noAccount": "Não tem uma conta?",
+    "signUpLink": "Cadastre-se",
+    "invalidCredentials": "E-mail ou senha inválidos.",
+    "genericError": "Erro ao fazer login. Tente novamente."
+  },
+  "Signup": {
+    "title": "GymFlow",
+    "subtitle": "Crie sua conta",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "seu@email.com",
+    "emailRequired": "E-mail é obrigatório.",
+    "emailInvalid": "Informe um e-mail válido.",
+    "passwordLabel": "Senha",
+    "passwordPlaceholder": "••••••••",
+    "passwordRequired": "Senha é obrigatória.",
+    "passwordRulesError": "A senha precisa cumprir todas as regras.",
+    "confirmPasswordLabel": "Confirmar senha",
+    "confirmPasswordPlaceholder": "••••••••",
+    "confirmPasswordRequired": "Confirme sua senha.",
+    "passwordMismatch": "As senhas precisam ser iguais.",
+    "passwordLegendTitle": "Regras da senha",
+    "passwordRuleUppercase": "Pelo menos 1 letra maiúscula",
+    "passwordRuleLowercase": "Pelo menos 1 letra minúscula",
+    "passwordRuleNumber": "Pelo menos 1 número",
+    "passwordRuleSpecial": "Pelo menos 1 caractere especial",
+    "submit": "Cadastrar",
+    "hasAccount": "Já tem uma conta?",
+    "signInLink": "Entrar",
+    "genericError": "Não foi possível criar sua conta. Tente novamente."
+  },
+  "Workouts": {
+    "title": "GymFlow",
+    "subtitle": "Você está na área autenticada.",
+    "logout": "Sair"
+  }
+}

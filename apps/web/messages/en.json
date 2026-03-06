@@ -1,0 +1,48 @@
+{
+  "Login": {
+    "title": "GymFlow",
+    "subtitle": "Sign in to continue",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@email.com",
+    "emailRequired": "Email is required.",
+    "emailInvalid": "Enter a valid email.",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
+    "passwordRequired": "Password is required.",
+    "submit": "Sign in",
+    "noAccount": "Don't have an account?",
+    "signUpLink": "Sign up",
+    "invalidCredentials": "Invalid email or password.",
+    "genericError": "Could not sign in. Please try again."
+  },
+  "Signup": {
+    "title": "GymFlow",
+    "subtitle": "Create your account",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@email.com",
+    "emailRequired": "Email is required.",
+    "emailInvalid": "Enter a valid email.",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
+    "passwordRequired": "Password is required.",
+    "passwordRulesError": "Password must meet all required rules.",
+    "confirmPasswordLabel": "Confirm password",
+    "confirmPasswordPlaceholder": "••••••••",
+    "confirmPasswordRequired": "Please confirm your password.",
+    "passwordMismatch": "Passwords must match.",
+    "passwordLegendTitle": "Password requirements",
+    "passwordRuleUppercase": "At least 1 uppercase letter",
+    "passwordRuleLowercase": "At least 1 lowercase letter",
+    "passwordRuleNumber": "At least 1 number",
+    "passwordRuleSpecial": "At least 1 special character",
+    "submit": "Sign up",
+    "hasAccount": "Already have an account?",
+    "signInLink": "Sign in",
+    "genericError": "Could not create your account. Please try again."
+  },
+  "Workouts": {
+    "title": "GymFlow",
+    "subtitle": "You are in the authenticated area.",
+    "logout": "Log out"
+  }
+}
