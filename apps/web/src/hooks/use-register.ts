@@ -8,7 +8,6 @@ import {
   type RegisterInput,
   type RegisterResponse,
 } from "@/graphql/auth/register.mutation";
-import { setTokens } from "@/lib/auth-storage";
 
 export function useRegister() {
   const router = useRouter();
@@ -21,8 +20,7 @@ export function useRegister() {
   async function register(input: RegisterInput) {
     const { data } = await registerMutation({ variables: { input } });
 
-    if (data?.register) {
-      setTokens(data.register.accessToken, data.register.refreshToken);
+    if (data?.register.success) {
       router.push(`/${locale}/workouts`);
     }
   }

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { AppResolver } from './app.resolver';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -14,7 +14,10 @@ import { PrismaModule } from './prisma/prisma.module';
       driver: ApolloDriver,
       autoSchemaFile: true,
       playground: true,
-      context: ({ req }: { req: Request }) => ({ req }),
+      context: ({ req, res }: { req: Request; res: Response }) => ({
+        req,
+        res,
+      }),
     }),
   ],
   providers: [AppResolver],

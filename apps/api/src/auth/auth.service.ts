@@ -6,7 +6,11 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import { AuthResponse } from './dto/auth-response.type';
+
+type AuthTokens = {
+  accessToken: string;
+  refreshToken: string;
+};
 
 @Injectable()
 export class AuthService {
@@ -15,7 +19,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(email: string, password: string): Promise<AuthResponse> {
+  async register(email: string, password: string): Promise<AuthTokens> {
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -39,7 +43,7 @@ export class AuthService {
     return tokens;
   }
 
-  async login(email: string, password: string): Promise<AuthResponse> {
+  async login(email: string, password: string): Promise<AuthTokens> {
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -63,7 +67,7 @@ export class AuthService {
   private async generateTokens(
     userId: string,
     email: string,
-  ): Promise<AuthResponse> {
+  ): Promise<AuthTokens> {
     const refreshSecret = process.env.JWT_REFRESH_SECRET;
 
     if (!refreshSecret) {

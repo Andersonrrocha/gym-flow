@@ -3,8 +3,7 @@ import { gql } from "@apollo/client";
 export const REGISTER_MUTATION = gql`
   mutation Register($input: AuthInput!) {
     register(input: $input) {
-      accessToken
-      refreshToken
+      success
     }
   }
 `;
@@ -16,7 +15,6 @@ export type RegisterInput = {
 
 export type RegisterResponse = {
   register: {
-    accessToken: string;
-    refreshToken: string;
+    success: boolean;
   };
 };
