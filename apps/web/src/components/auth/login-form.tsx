@@ -36,11 +36,16 @@ export function LoginForm() {
     await login(values);
   });
 
-  const errorMessage = error?.message?.includes("credentials")
-    ? t("invalidCredentials")
-    : error
-      ? t("genericError")
-      : null;
+  const normalizedErrorMessage = error?.message?.toLowerCase() ?? "";
+  const errorMessage = normalizedErrorMessage.includes("account not found")
+    ? t("accountNotFound")
+    : normalizedErrorMessage.includes("incorrect password")
+      ? t("incorrectPassword")
+      : normalizedErrorMessage.includes("credentials")
+        ? t("invalidCredentials")
+        : error
+          ? t("genericError")
+          : null;
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-5">
