@@ -44,5 +44,52 @@
     "title": "GymFlow",
     "subtitle": "You are in the authenticated area.",
     "logout": "Log out"
+  },
+  "WorkoutHome": {
+    "greeting": "Ready to train",
+    "streakLabel": "day streak",
+    "todayWorkout": "Today's workout",
+    "exercises": "{count} exercises",
+    "estimatedTime": "~{minutes} min",
+    "startWorkout": "Start Workout",
+    "noWorkoutToday": "No workout scheduled for today",
+    "weeklyProgress": "This week",
+    "lastWorkout": "Last session",
+    "totalSets": "{count} sets",
+    "totalVolume": "{value} kg volume",
+    "duration": "{minutes} min",
+    "viewHistory": "History",
+    "logout": "Log out"
+  },
+  "WorkoutActive": {
+    "progress": "Progress",
+    "addSet": "+ Add Set",
+    "nextExercise": "Next",
+    "finishWorkout": "Finish Workout",
+    "pause": "Pause",
+    "confirmFinish": "Are you sure you want to finish this workout?",
+    "emptySession": "No exercises in this session"
+  },
+  "ExerciseHistory": {
+    "pr": "PR",
+    "weight": "{value} kg",
+    "reps": "{count} reps",
+    "sessionTitle": "Session history",
+    "set": "Set {number}",
+    "noHistory": "No history for this exercise yet"
+  },
+  "WorkoutCatalog": {
+    "title": "Exercises",
+    "searchPlaceholder": "Search exercises...",
+    "recent": "Recently used",
+    "allExercises": "All exercises",
+    "noResults": "No exercises found"
+  },
+  "WorkoutBuilder": {
+    "title": "Workout builder",
+    "namePlaceholder": "Workout name",
+    "addExercise": "+ Add exercise",
+    "save": "Save workout",
+    "emptyList": "Add your first exercise"
   }
 }

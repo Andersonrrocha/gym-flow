@@ -44,5 +44,52 @@
     "title": "GymFlow",
     "subtitle": "Você está na área autenticada.",
     "logout": "Sair"
+  },
+  "WorkoutHome": {
+    "greeting": "Pronto para treinar",
+    "streakLabel": "dias seguidos",
+    "todayWorkout": "Treino de hoje",
+    "exercises": "{count} exercícios",
+    "estimatedTime": "~{minutes} min",
+    "startWorkout": "Iniciar Treino",
+    "noWorkoutToday": "Nenhum treino agendado para hoje",
+    "weeklyProgress": "Esta semana",
+    "lastWorkout": "Última sessão",
+    "totalSets": "{count} séries",
+    "totalVolume": "{value} kg volume",
+    "duration": "{minutes} min",
+    "viewHistory": "Histórico",
+    "logout": "Sair"
+  },
+  "WorkoutActive": {
+    "progress": "Progresso",
+    "addSet": "+ Adicionar Série",
+    "nextExercise": "Próximo",
+    "finishWorkout": "Finalizar Treino",
+    "pause": "Pausar",
+    "confirmFinish": "Tem certeza que deseja finalizar este treino?",
+    "emptySession": "Nenhum exercício nesta sessão"
+  },
+  "ExerciseHistory": {
+    "pr": "PR",
+    "weight": "{value} kg",
+    "reps": "{count} reps",
+    "sessionTitle": "Histórico de sessões",
+    "set": "Série {number}",
+    "noHistory": "Nenhum histórico para este exercício"
+  },
+  "WorkoutCatalog": {
+    "title": "Exercícios",
+    "searchPlaceholder": "Buscar exercícios...",
+    "recent": "Usados recentemente",
+    "allExercises": "Todos os exercícios",
+    "noResults": "Nenhum exercício encontrado"
+  },
+  "WorkoutBuilder": {
+    "title": "Montar treino",
+    "namePlaceholder": "Nome do treino",
+    "addExercise": "+ Adicionar exercício",
+    "save": "Salvar treino",
+    "emptyList": "Adicione seu primeiro exercício"
   }
 }
