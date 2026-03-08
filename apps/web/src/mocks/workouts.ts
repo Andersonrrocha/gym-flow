@@ -233,6 +233,16 @@ export const exerciseHistoryMock: ExerciseHistory = {
   ],
 };
 
+export type QuickStats = {
+  workoutsThisWeek: number;
+  totalVolumeThisWeek: number;
+};
+
+export const quickStatsMock: QuickStats = {
+  workoutsThisWeek: 3,
+  totalVolumeThisWeek: 12400,
+};
+
 export const workoutBuilderMock: Workout = {
   id: "w-1",
   name: "Push Day",

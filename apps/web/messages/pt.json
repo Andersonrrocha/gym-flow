@@ -12,6 +12,8 @@
     "submit": "Entrar",
     "noAccount": "Não tem uma conta?",
     "signUpLink": "Cadastre-se",
+    "accountNotFound": "Conta não encontrada.",
+    "incorrectPassword": "Senha incorreta.",
     "invalidCredentials": "E-mail ou senha inválidos.",
     "genericError": "Erro ao fazer login. Tente novamente."
   },
@@ -45,6 +47,13 @@
     "subtitle": "Você está na área autenticada.",
     "logout": "Sair"
   },
+  "Navigation": {
+    "workouts": "Treinos",
+    "exercises": "Exercícios",
+    "schedule": "Agenda",
+    "progress": "Progresso",
+    "settings": "Ajustes"
+  },
   "WorkoutHome": {
     "greeting": "Pronto para treinar",
     "streakLabel": "dias seguidos",
@@ -54,6 +63,9 @@
     "startWorkout": "Iniciar Treino",
     "noWorkoutToday": "Nenhum treino agendado para hoje",
     "weeklyProgress": "Esta semana",
+    "quickStats": "Resumo rápido",
+    "workoutsThisWeek": "{count} treinos",
+    "volumeThisWeek": "{value} kg volume",
     "lastWorkout": "Última sessão",
     "totalSets": "{count} séries",
     "totalVolume": "{value} kg volume",

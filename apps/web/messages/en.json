@@ -12,6 +12,8 @@
     "submit": "Sign in",
     "noAccount": "Don't have an account?",
     "signUpLink": "Sign up",
+    "accountNotFound": "Account not found.",
+    "incorrectPassword": "Incorrect password.",
     "invalidCredentials": "Invalid email or password.",
     "genericError": "Could not sign in. Please try again."
   },
@@ -45,6 +47,13 @@
     "subtitle": "You are in the authenticated area.",
     "logout": "Log out"
   },
+  "Navigation": {
+    "workouts": "Workouts",
+    "exercises": "Exercises",
+    "schedule": "Schedule",
+    "progress": "Progress",
+    "settings": "Settings"
+  },
   "WorkoutHome": {
     "greeting": "Ready to train",
     "streakLabel": "day streak",
@@ -54,6 +63,9 @@
     "startWorkout": "Start Workout",
     "noWorkoutToday": "No workout scheduled for today",
     "weeklyProgress": "This week",
+    "quickStats": "Quick stats",
+    "workoutsThisWeek": "{count} workouts",
+    "volumeThisWeek": "{value} kg volume",
     "lastWorkout": "Last session",
     "totalSets": "{count} sets",
     "totalVolume": "{value} kg volume",
