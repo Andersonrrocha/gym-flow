@@ -30,6 +30,10 @@
   --primary-foreground: #ffffff;
   --destructive: #dc2626;
   --destructive-foreground: #fafafa;
+  --accent: #a3e635;
+  --accent-foreground: #0a0a0a;
+  --success: #22c55e;
+  --success-foreground: #ffffff;
 }
 
 @theme inline {
@@ -46,6 +50,10 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
 }
 
 body {
