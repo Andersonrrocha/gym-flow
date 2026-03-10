@@ -7,6 +7,7 @@ import type {
   WeeklyProgress,
   Workout,
   WorkoutSession,
+  WorkoutSessionSummary,
 } from "@/types/workouts";
 
 const exercises: Record<string, Exercise> = {
@@ -121,6 +122,8 @@ export const weeklyProgressMock: WeeklyProgress = {
   totalPlanned: 5,
 };
 
+const mockTs = "2026-03-10T08:00:00.000Z";
+
 const pushDayExercises: SessionExercise[] = [
   {
     id: "se-1",
@@ -129,11 +132,12 @@ const pushDayExercises: SessionExercise[] = [
     plannedSets: 4,
     plannedReps: "8-10",
     order: 1,
+    completed: false,
     sets: [
-      { id: "ss-1", setNumber: 1, reps: 10, weight: 80, completed: true },
-      { id: "ss-2", setNumber: 2, reps: 9, weight: 80, completed: true },
-      { id: "ss-3", setNumber: 3, reps: 8, weight: 80, completed: false },
-      { id: "ss-4", setNumber: 4, reps: 0, weight: 80, completed: false },
+      { id: "ss-1", setNumber: 1, reps: 10, weight: 80, completed: true, createdAt: mockTs },
+      { id: "ss-2", setNumber: 2, reps: 9, weight: 80, completed: true, createdAt: mockTs },
+      { id: "ss-3", setNumber: 3, reps: 8, weight: 80, completed: false, createdAt: mockTs },
+      { id: "ss-4", setNumber: 4, reps: 0, weight: 80, completed: false, createdAt: mockTs },
     ],
   },
   {
@@ -143,10 +147,11 @@ const pushDayExercises: SessionExercise[] = [
     plannedSets: 3,
     plannedReps: "8-12",
     order: 2,
+    completed: false,
     sets: [
-      { id: "ss-5", setNumber: 1, reps: 0, weight: 40, completed: false },
-      { id: "ss-6", setNumber: 2, reps: 0, weight: 40, completed: false },
-      { id: "ss-7", setNumber: 3, reps: 0, weight: 40, completed: false },
+      { id: "ss-5", setNumber: 1, reps: 0, weight: 40, completed: false, createdAt: mockTs },
+      { id: "ss-6", setNumber: 2, reps: 0, weight: 40, completed: false, createdAt: mockTs },
+      { id: "ss-7", setNumber: 3, reps: 0, weight: 40, completed: false, createdAt: mockTs },
     ],
   },
   {
@@ -156,10 +161,11 @@ const pushDayExercises: SessionExercise[] = [
     plannedSets: 3,
     plannedReps: "12-15",
     order: 3,
+    completed: false,
     sets: [
-      { id: "ss-8", setNumber: 1, reps: 0, weight: 10, completed: false },
-      { id: "ss-9", setNumber: 2, reps: 0, weight: 10, completed: false },
-      { id: "ss-10", setNumber: 3, reps: 0, weight: 10, completed: false },
+      { id: "ss-8", setNumber: 1, reps: 0, weight: 10, completed: false, createdAt: mockTs },
+      { id: "ss-9", setNumber: 2, reps: 0, weight: 10, completed: false, createdAt: mockTs },
+      { id: "ss-10", setNumber: 3, reps: 0, weight: 10, completed: false, createdAt: mockTs },
     ],
   },
   {
@@ -169,10 +175,11 @@ const pushDayExercises: SessionExercise[] = [
     plannedSets: 3,
     plannedReps: "10-12",
     order: 4,
+    completed: false,
     sets: [
-      { id: "ss-11", setNumber: 1, reps: 0, weight: 25, completed: false },
-      { id: "ss-12", setNumber: 2, reps: 0, weight: 25, completed: false },
-      { id: "ss-13", setNumber: 3, reps: 0, weight: 25, completed: false },
+      { id: "ss-11", setNumber: 1, reps: 0, weight: 25, completed: false, createdAt: mockTs },
+      { id: "ss-12", setNumber: 2, reps: 0, weight: 25, completed: false, createdAt: mockTs },
+      { id: "ss-13", setNumber: 3, reps: 0, weight: 25, completed: false, createdAt: mockTs },
     ],
   },
   {
@@ -182,21 +189,39 @@ const pushDayExercises: SessionExercise[] = [
     plannedSets: 3,
     plannedReps: "10-12",
     order: 5,
+    completed: false,
     sets: [
-      { id: "ss-14", setNumber: 1, reps: 0, weight: 14, completed: false },
-      { id: "ss-15", setNumber: 2, reps: 0, weight: 14, completed: false },
-      { id: "ss-16", setNumber: 3, reps: 0, weight: 14, completed: false },
+      { id: "ss-14", setNumber: 1, reps: 0, weight: 14, completed: false, createdAt: mockTs },
+      { id: "ss-15", setNumber: 2, reps: 0, weight: 14, completed: false, createdAt: mockTs },
+      { id: "ss-16", setNumber: 3, reps: 0, weight: 14, completed: false, createdAt: mockTs },
     ],
   },
 ];
 
 export const activeWorkoutMock: WorkoutSession = {
   id: "ws-1",
+  workoutId: "w-1",
   workoutName: "Push Day",
   status: "IN_PROGRESS",
   startedAt: new Date(Date.now() - 23 * 60 * 1000).toISOString(),
   finishedAt: null,
   exercises: pushDayExercises,
+};
+
+export const activeWorkoutSessionMock = activeWorkoutMock;
+
+export const workoutSessionSummaryMock: WorkoutSessionSummary = {
+  workoutName: "Push Day",
+  totalSets: 16,
+  totalVolume: 4320,
+  durationMinutes: 52,
+  completedExercises: [
+    "Bench Press",
+    "Overhead Press",
+    "Lateral Raise",
+    "Tricep Pushdown",
+    "Dumbbell Curl",
+  ],
 };
 
 export const exerciseHistoryMock: ExerciseHistory = {

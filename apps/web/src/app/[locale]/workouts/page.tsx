@@ -14,7 +14,58 @@ import {
   lastWorkoutMock,
   weeklyProgressMock,
   quickStatsMock,
+  workoutBuilderMock,
 } from "@/mocks/workouts";
+import {
+  saveActiveSession,
+  getLatestSessionByWorkoutId,
+} from "@/lib/session-storage";
+import type { SessionSet, WorkoutSession } from "@/types/workouts";
+
+function prefillSets(
+  exerciseId: string,
+  previousSession: WorkoutSession | null,
+): SessionSet[] {
+  if (!previousSession) return [];
+
+  const prevExercise = previousSession.exercises.find(
+    (ex) => ex.exerciseId === exerciseId,
+  );
+  if (!prevExercise) return [];
+
+  return prevExercise.sets.map((s, idx) => ({
+    id: crypto.randomUUID(),
+    setNumber: idx + 1,
+    weight: s.weight,
+    reps: s.reps,
+    completed: false,
+    createdAt: new Date().toISOString(),
+  }));
+}
+
+function createSessionFromTemplate(): WorkoutSession {
+  const template = workoutBuilderMock;
+  const previousSession = getLatestSessionByWorkoutId(template.id);
+
+  return {
+    id: crypto.randomUUID(),
+    workoutId: template.id,
+    workoutName: template.name,
+    status: "IN_PROGRESS",
+    startedAt: new Date().toISOString(),
+    finishedAt: null,
+    exercises: template.exercises.map((we) => ({
+      id: crypto.randomUUID(),
+      exerciseId: we.exercise.id,
+      nameSnapshot: we.exercise.name,
+      plannedSets: we.plannedSets,
+      plannedReps: we.plannedReps,
+      order: we.order,
+      completed: false,
+      sets: prefillSets(we.exercise.id, previousSession),
+    })),
+  };
+}
 
 export default function WorkoutsPage() {
   const t = useTranslations("WorkoutHome");
@@ -26,6 +77,12 @@ export default function WorkoutsPage() {
   const last = lastWorkoutMock;
   const weekly = weeklyProgressMock;
   const stats = quickStatsMock;
+
+  const handleStartWorkout = () => {
+    const session = createSessionFromTemplate();
+    saveActiveSession(session);
+    router.push(`/${locale}/workouts/active`);
+  };
 
   return (
     <main className="min-h-dvh bg-background">
@@ -60,7 +117,7 @@ export default function WorkoutsPage() {
                 }),
                 startWorkout: t("startWorkout"),
               }}
-              onStart={() => router.push(`/${locale}/workouts/active`)}
+              onStart={handleStartWorkout}
             />
 
             {/* Weekly progress */}
@@ -127,6 +184,14 @@ export default function WorkoutsPage() {
                 </div>
               </div>
             </div>
+
+            {/* Session history link */}
+            <button
+              onClick={() => router.push(`/${locale}/workouts/history`)}
+              className="mt-1 self-start text-xs font-medium text-primary hover:underline"
+            >
+              {t("sessionHistory")}
+            </button>
           </div>
         </div>
       </div>

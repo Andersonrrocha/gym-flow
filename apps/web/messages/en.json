@@ -71,16 +71,54 @@
     "totalVolume": "{value} kg volume",
     "duration": "{minutes} min",
     "viewHistory": "History",
+    "sessionHistory": "View all sessions",
     "logout": "Log out"
   },
   "WorkoutActive": {
     "progress": "Progress",
+    "tapToEdit": "Tap any exercise to activate and edit",
     "addSet": "+ Add Set",
+    "removeSet": "Remove set",
+    "historyButton": "History",
+    "historyClose": "Close",
+    "historyPr": "PR",
+    "historyWeight": "{value} kg",
+    "historyReps": "{count} reps",
+    "historySet": "Set {number}",
+    "historyEmpty": "No history for this exercise yet",
+    "completeExercise": "Complete",
+    "completed": "Completed",
+    "upNext": "Up next",
     "nextExercise": "Next",
     "finishWorkout": "Finish Workout",
+    "exercisesRemaining": "{count} exercises left",
     "pause": "Pause",
     "confirmFinish": "Are you sure you want to finish this workout?",
     "emptySession": "No exercises in this session"
+  },
+  "WorkoutSummary": {
+    "title": "Workout Complete",
+    "sets": "sets",
+    "volume": "volume",
+    "duration": "duration",
+    "exercisesCompleted": "Exercises completed",
+    "backToWorkouts": "Back to Workouts",
+    "viewHistory": "View session history"
+  },
+  "WorkoutHistory": {
+    "title": "Session History",
+    "empty": "No sessions yet. Finish a workout to see it here.",
+    "min": "min",
+    "sets": "sets"
+  },
+  "SessionDetail": {
+    "notFound": "Session not found.",
+    "backToHistory": "Back to history",
+    "sets": "sets",
+    "volume": "volume",
+    "duration": "duration",
+    "setLabel": "Set {number}",
+    "noSets": "No sets recorded"
   },
   "ExerciseHistory": {
     "pr": "PR",

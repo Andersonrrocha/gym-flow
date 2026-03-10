@@ -48,6 +48,7 @@ export type SessionSet = {
   reps: number;
   weight: number;
   completed: boolean;
+  createdAt: string;
 };
 
 export type SessionExercise = {
@@ -57,6 +58,7 @@ export type SessionExercise = {
   plannedSets: number | null;
   plannedReps: string | null;
   order: number;
+  completed: boolean;
   sets: SessionSet[];
 };
 
@@ -64,6 +66,7 @@ export type WorkoutSessionStatus = "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
 
 export type WorkoutSession = {
   id: string;
+  workoutId: string;
   workoutName: string | null;
   status: WorkoutSessionStatus;
   startedAt: string;
@@ -96,6 +99,14 @@ export type TodayWorkout = {
   name: string;
   exerciseCount: number;
   estimatedMinutes: number;
+};
+
+export type WorkoutSessionSummary = {
+  workoutName: string;
+  totalSets: number;
+  totalVolume: number;
+  durationMinutes: number;
+  completedExercises: string[];
 };
 
 export type ExerciseHistory = {

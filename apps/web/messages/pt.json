@@ -71,16 +71,54 @@
     "totalVolume": "{value} kg volume",
     "duration": "{minutes} min",
     "viewHistory": "Histórico",
+    "sessionHistory": "Ver todas as sessões",
     "logout": "Sair"
   },
   "WorkoutActive": {
     "progress": "Progresso",
+    "tapToEdit": "Toque em qualquer exercício para ativar e editar",
     "addSet": "+ Adicionar Série",
+    "removeSet": "Remover série",
+    "historyButton": "Histórico",
+    "historyClose": "Fechar",
+    "historyPr": "PR",
+    "historyWeight": "{value} kg",
+    "historyReps": "{count} reps",
+    "historySet": "Série {number}",
+    "historyEmpty": "Nenhum histórico para este exercício",
+    "completeExercise": "Concluir",
+    "completed": "Concluído",
+    "upNext": "Próximo",
     "nextExercise": "Próximo",
     "finishWorkout": "Finalizar Treino",
+    "exercisesRemaining": "{count} exercícios restantes",
     "pause": "Pausar",
     "confirmFinish": "Tem certeza que deseja finalizar este treino?",
     "emptySession": "Nenhum exercício nesta sessão"
+  },
+  "WorkoutSummary": {
+    "title": "Treino Concluído",
+    "sets": "séries",
+    "volume": "volume",
+    "duration": "duração",
+    "exercisesCompleted": "Exercícios concluídos",
+    "backToWorkouts": "Voltar aos Treinos",
+    "viewHistory": "Ver histórico de sessões"
+  },
+  "WorkoutHistory": {
+    "title": "Histórico de Sessões",
+    "empty": "Nenhuma sessão ainda. Finalize um treino para vê-lo aqui.",
+    "min": "min",
+    "sets": "séries"
+  },
+  "SessionDetail": {
+    "notFound": "Sessão não encontrada.",
+    "backToHistory": "Voltar ao histórico",
+    "sets": "séries",
+    "volume": "volume",
+    "duration": "duração",
+    "setLabel": "Série {number}",
+    "noSets": "Nenhuma série registrada"
   },
   "ExerciseHistory": {
     "pr": "PR",
