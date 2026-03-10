@@ -10,7 +10,9 @@ export default function WorkoutsLayout({ children }: WorkoutsLayoutProps) {
     <div className="flex min-h-dvh">
       <DesktopSidebar />
 
-      <div className="flex-1 pb-16 lg:pb-0">{children}</div>
+      <div className="flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+        {children}
+      </div>
 
       <BottomNavigation />
     </div>

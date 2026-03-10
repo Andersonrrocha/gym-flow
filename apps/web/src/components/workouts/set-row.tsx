@@ -6,14 +6,20 @@ import type { SessionSet } from "@/types/workouts";
 
 type SetRowProps = {
   set: SessionSet;
+  canRemove?: boolean;
+  removeLabel?: string;
   onToggle?: (setId: string) => void;
+  onRemove?: (setId: string) => void;
   onUpdateWeight?: (setId: string, weight: number) => void;
   onUpdateReps?: (setId: string, reps: number) => void;
 };
 
 export function SetRow({
   set,
+  canRemove = true,
+  removeLabel = "Remove set",
   onToggle,
+  onRemove,
   onUpdateWeight,
   onUpdateReps,
 }: SetRowProps) {
@@ -56,7 +62,20 @@ export function SetRow({
         placeholder="reps"
       />
 
+      {canRemove && (
+        <button
+          type="button"
+          onClick={() => onRemove?.(set.id)}
+          className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-[11px] text-muted-foreground transition-all hover:border-destructive/50 hover:text-destructive"
+          aria-label={removeLabel}
+          title={removeLabel}
+        >
+          -
+        </button>
+      )}
+
       <button
+        type="button"
         onClick={() => onToggle?.(set.id)}
         className={cn(
           "ml-auto flex h-7 w-7 items-center justify-center rounded-md border text-xs transition-all",

@@ -74,7 +74,7 @@ export default function BuilderPage() {
         </button>
 
         {/* Save */}
-        <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background/80 px-4 py-3 backdrop-blur-md">
+        <div className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom))] left-0 right-0 border-t border-border bg-background/80 px-4 py-3 backdrop-blur-md lg:bottom-0">
           <div className="mx-auto max-w-lg">
             <PrimaryButton size="lg" className="w-full">
               {t("save")}
