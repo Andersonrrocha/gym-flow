@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
+import { formatRelativeDateWithYear } from "@/lib/date-format";
 import type { ExerciseHistoryData } from "@/lib/workout-metrics";
 
 type ExerciseHistoryModalProps = {
@@ -14,8 +15,6 @@ type ExerciseHistoryModalProps = {
   labels: {
     close: string;
     pr: string;
-    weight: string;
-    reps: string;
     empty: string;
   };
 };
@@ -140,17 +139,5 @@ export function ExerciseHistoryModal({
 }
 
 function formatSessionDate(isoDate: string, locale: string): string {
-  const date = new Date(isoDate);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return locale === "pt" ? "Hoje" : "Today";
-  if (diffDays === 1) return locale === "pt" ? "Ontem" : "Yesterday";
-
-  return date.toLocaleDateString(locale === "pt" ? "pt-BR" : "en-US", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  return formatRelativeDateWithYear(isoDate, locale);
 }

@@ -20,6 +20,7 @@ import {
   saveActiveSession,
   getLatestSessionByWorkoutId,
 } from "@/lib/session-storage";
+import { formatNumber } from "@/lib/number-format";
 import type { SessionSet, WorkoutSession } from "@/types/workouts";
 
 function prefillSets(
@@ -86,7 +87,7 @@ export default function WorkoutsPage() {
 
   return (
     <main className="min-h-dvh bg-background">
-      <div className="mx-auto max-w-4xl px-4 py-6">
+      <div className="mx-auto max-w-5xl px-4 py-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold tracking-tight text-foreground">
@@ -140,9 +141,9 @@ export default function WorkoutsPage() {
                   })}
                 />
                 <StatItem
-                  value={stats.totalVolumeThisWeek.toLocaleString()}
+                  value={formatNumber(stats.totalVolumeThisWeek, locale)}
                   label={t("volumeThisWeek", {
-                    value: stats.totalVolumeThisWeek.toLocaleString(),
+                    value: formatNumber(stats.totalVolumeThisWeek, locale),
                   })}
                 />
               </div>
@@ -174,7 +175,7 @@ export default function WorkoutsPage() {
                   <span>·</span>
                   <span className="font-mono tabular-nums">
                     {t("totalVolume", {
-                      value: last.totalVolume.toLocaleString(),
+                      value: formatNumber(last.totalVolume, locale),
                     })}
                   </span>
                   <span>·</span>

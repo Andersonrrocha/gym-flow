@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { formatRelativeDate } from "@/lib/date-format";
 import { getWorkoutSessions } from "@/lib/session-storage";
 import { computeSessionMetrics } from "@/lib/workout-metrics";
 import type { WorkoutSession } from "@/types/workouts";
@@ -20,7 +21,7 @@ export default function WorkoutHistoryPage() {
 
   return (
     <main className="min-h-dvh bg-background">
-      <div className="mx-auto max-w-lg px-4 py-6">
+      <div className="mx-auto max-w-5xl px-4 py-6">
         <h1 className="text-xl font-bold tracking-tight text-foreground">
           {t("title")}
         </h1>
@@ -30,7 +31,7 @@ export default function WorkoutHistoryPage() {
             {t("empty")}
           </p>
         ) : (
-          <div className="mt-4 flex flex-col gap-2">
+          <div className="mt-4 grid grid-cols-1 gap-2 lg:grid-cols-2">
             {sessions.map((session) => {
               const metrics = computeSessionMetrics(session);
               return (
@@ -68,19 +69,4 @@ export default function WorkoutHistoryPage() {
       </div>
     </main>
   );
-}
-
-function formatRelativeDate(isoDate: string, locale: string): string {
-  const date = new Date(isoDate);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return locale === "pt" ? "Hoje" : "Today";
-  if (diffDays === 1) return locale === "pt" ? "Ontem" : "Yesterday";
-
-  return date.toLocaleDateString(locale === "pt" ? "pt-BR" : "en-US", {
-    day: "numeric",
-    month: "short",
-  });
 }

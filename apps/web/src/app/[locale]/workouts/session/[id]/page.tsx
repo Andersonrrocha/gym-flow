@@ -4,6 +4,8 @@ import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
+import { formatDate } from "@/lib/date-format";
+import { formatNumber } from "@/lib/number-format";
 import { getWorkoutSessionById } from "@/lib/session-storage";
 import { computeSessionMetrics } from "@/lib/workout-metrics";
 import type { WorkoutSession } from "@/types/workouts";
@@ -41,14 +43,15 @@ export default function SessionDetailPage() {
   }
 
   const metrics = computeSessionMetrics(session);
-  const date = new Date(session.startedAt).toLocaleDateString(
-    locale === "pt" ? "pt-BR" : "en-US",
-    { day: "numeric", month: "long", year: "numeric" },
-  );
+  const date = formatDate(session.startedAt, locale, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <main className="min-h-dvh bg-background">
-      <div className="mx-auto max-w-lg px-4 py-6">
+      <div className="mx-auto max-w-5xl px-4 py-6">
         <button
           onClick={() => router.push(`/${locale}/workouts/history`)}
           className="mb-4 text-xs font-medium text-primary hover:underline"
@@ -56,29 +59,33 @@ export default function SessionDetailPage() {
           ← {t("backToHistory")}
         </button>
 
-        <h1 className="text-xl font-bold tracking-tight text-foreground">
-          {metrics.workoutName}
-        </h1>
-        <p className="mt-1 text-xs text-muted-foreground">{date}</p>
+        <div className="flex flex-col gap-1 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">
+              {metrics.workoutName}
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground">{date}</p>
+          </div>
 
-        <div className="mt-4 flex gap-6">
-          <MetricBadge
-            value={String(metrics.totalSets)}
-            label={t("sets")}
-          />
-          <MetricBadge
-            value={metrics.totalVolume.toLocaleString()}
-            unit="kg"
-            label={t("volume")}
-          />
-          <MetricBadge
-            value={String(metrics.durationMinutes)}
-            unit="min"
-            label={t("duration")}
-          />
+          <div className="mt-4 flex gap-6 lg:mt-0">
+            <MetricBadge
+              value={String(metrics.totalSets)}
+              label={t("sets")}
+            />
+            <MetricBadge
+            value={formatNumber(metrics.totalVolume, locale)}
+              unit="kg"
+              label={t("volume")}
+            />
+            <MetricBadge
+              value={String(metrics.durationMinutes)}
+              unit="min"
+              label={t("duration")}
+            />
+          </div>
         </div>
 
-        <div className="mt-6 flex flex-col gap-4">
+        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
           {session.exercises.map((ex) => (
             <div
               key={ex.id}

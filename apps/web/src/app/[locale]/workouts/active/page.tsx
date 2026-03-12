@@ -23,16 +23,14 @@ import {
 } from "@/lib/workout-metrics";
 import type { WorkoutSession } from "@/types/workouts";
 
-function loadInitialSession(): WorkoutSession {
-  return getActiveSession() ?? activeWorkoutSessionMock;
-}
-
 export default function ActiveWorkoutPage() {
   const t = useTranslations("WorkoutActive");
   const locale = useLocale();
   const router = useRouter();
 
-  const [session, setSession] = useState<WorkoutSession>(loadInitialSession);
+  // Keep first render deterministic for SSR/client hydration.
+  const [session, setSession] = useState<WorkoutSession>(activeWorkoutSessionMock);
+  const [sessionHydrated, setSessionHydrated] = useState(false);
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(
     null,
   );
@@ -55,8 +53,17 @@ export default function ActiveWorkoutPage() {
   }, []);
 
   useEffect(() => {
+    const storedSession = getActiveSession();
+    if (storedSession) {
+      setSession(storedSession);
+    }
+    setSessionHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!sessionHydrated) return;
     saveActiveSession(session);
-  }, [session]);
+  }, [session, sessionHydrated]);
 
   const autoActiveIndex = useMemo(() => {
     const idx = session.exercises.findIndex((ex) => !ex.completed);
@@ -207,59 +214,94 @@ export default function ActiveWorkoutPage() {
 
   return (
     <main className="min-h-dvh bg-background">
-      <div className="mx-auto max-w-lg">
+      <div className="mx-auto max-w-5xl">
         <WorkoutHeader
           workoutName={session.workoutName ?? "Workout"}
           startedAt={session.startedAt}
         />
 
-        <div className="px-4">
-          <WorkoutProgress
-            completed={completedCount}
-            total={totalExercises}
-            label={t("progress")}
-          />
-          <p className="mt-2 text-[11px] text-muted-foreground">
-            {t("tapToEdit")}
-          </p>
-        </div>
-
-        <div className="mt-4 flex flex-col gap-2 px-4 pb-32">
-          {session.exercises.map((ex) => (
-            <ExerciseBlock
-              key={ex.id}
-              exercise={ex}
-              isActive={ex.id === activeExerciseId}
-              isCompleted={ex.completed}
-              onSelect={() => setSelectedExerciseId(ex.id)}
-              onOpenHistory={handleOpenHistory}
-              onToggleSet={handleToggleSet}
-              onUpdateWeight={handleUpdateWeight}
-              onUpdateReps={handleUpdateReps}
-              onRemoveSet={handleRemoveSet}
-              onAddSet={handleAddSet}
-              onComplete={handleCompleteExercise}
-              addSetLabel={t("addSet")}
-              removeSetLabel={t("removeSet")}
-              historyLabel={t("historyButton")}
-              completeLabel={t("completeExercise")}
-              completedLabel={t("completed")}
-            />
-          ))}
-
-          {nextExercise && (
-            <div className="mt-3 rounded-lg border border-dashed border-border/50 p-3">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                {t("upNext")}
-              </p>
-              <p className="mt-0.5 text-sm font-semibold text-foreground/80">
-                {nextExercise.nameSnapshot}
+        <div className="lg:grid lg:grid-cols-3 lg:gap-6 lg:px-4">
+          {/* Exercise list — main column */}
+          <div className="lg:col-span-2">
+            <div className="px-4 lg:px-0">
+              <WorkoutProgress
+                completed={completedCount}
+                total={totalExercises}
+                label={t("progress")}
+              />
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                {t("tapToEdit")}
               </p>
             </div>
-          )}
+
+            <div className="mt-4 flex flex-col gap-2 px-4 pb-32 lg:px-0 lg:pb-6">
+              {session.exercises.map((ex) => (
+                <ExerciseBlock
+                  key={ex.id}
+                  exercise={ex}
+                  isActive={ex.id === activeExerciseId}
+                  isCompleted={ex.completed}
+                  onSelect={() => setSelectedExerciseId(ex.id)}
+                  onOpenHistory={handleOpenHistory}
+                  onToggleSet={handleToggleSet}
+                  onUpdateWeight={handleUpdateWeight}
+                  onUpdateReps={handleUpdateReps}
+                  onRemoveSet={handleRemoveSet}
+                  onAddSet={handleAddSet}
+                  onComplete={handleCompleteExercise}
+                  addSetLabel={t("addSet")}
+                  removeSetLabel={t("removeSet")}
+                  historyLabel={t("historyButton")}
+                  completeLabel={t("completeExercise")}
+                  completedLabel={t("completed")}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Sidebar — desktop only sticky panel */}
+          <div className="hidden lg:block">
+            <div className="sticky top-6 flex flex-col gap-4">
+              {nextExercise && (
+                <div className="rounded-lg border border-dashed border-border/50 p-3">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                    {t("upNext")}
+                  </p>
+                  <p className="mt-0.5 text-sm font-semibold text-foreground/80">
+                    {nextExercise.nameSnapshot}
+                  </p>
+                </div>
+              )}
+
+              <PrimaryButton
+                size="lg"
+                className="w-full"
+                onClick={handleFinish}
+                disabled={!allExercisesDone}
+              >
+                {allExercisesDone
+                  ? t("finishWorkout")
+                  : t("exercisesRemaining", {
+                      count: totalExercises - completedCount,
+                    })}
+              </PrimaryButton>
+            </div>
+          </div>
         </div>
 
-        <div className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom))] left-0 right-0 border-t border-border bg-background/80 px-4 py-3 backdrop-blur-md lg:bottom-0">
+        {/* Mobile — up next + sticky bottom bar */}
+        {nextExercise && (
+          <div className="mx-4 -mt-28 mb-2 rounded-lg border border-dashed border-border/50 p-3 lg:hidden">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              {t("upNext")}
+            </p>
+            <p className="mt-0.5 text-sm font-semibold text-foreground/80">
+              {nextExercise.nameSnapshot}
+            </p>
+          </div>
+        )}
+
+        <div className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom))] left-0 right-0 border-t border-border bg-background/80 px-4 py-3 backdrop-blur-md lg:hidden">
           <div className="mx-auto max-w-lg">
             <PrimaryButton
               size="lg"
@@ -286,8 +328,6 @@ export default function ActiveWorkoutPage() {
         labels={{
           close: t("historyClose"),
           pr: t("historyPr"),
-          weight: t("historyWeight"),
-          reps: t("historyReps"),
           empty: t("historyEmpty"),
         }}
       />

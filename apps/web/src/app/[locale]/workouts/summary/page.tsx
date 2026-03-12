@@ -5,6 +5,7 @@ import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { PrimaryButton } from "@/components/workouts/primary-button";
+import { formatNumber } from "@/lib/number-format";
 import { getWorkoutSessions } from "@/lib/session-storage";
 import { computeSessionMetrics } from "@/lib/workout-metrics";
 import { workoutSessionSummaryMock } from "@/mocks/workouts";
@@ -26,7 +27,7 @@ export default function WorkoutSummaryPage() {
   return (
     <main className="flex min-h-dvh items-center justify-center bg-background px-4">
       <motion.div
-        className="w-full max-w-sm"
+        className="w-full max-w-sm lg:max-w-2xl"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -49,14 +50,14 @@ export default function WorkoutSummaryPage() {
           </p>
         </div>
 
-        <div className="mt-6 flex justify-center gap-6">
+        <div className="mt-6 flex justify-center gap-8 lg:gap-12">
           <SummaryStat
             value={String(summary.totalSets)}
             label={t("sets")}
             delay={0.3}
           />
           <SummaryStat
-            value={summary.totalVolume.toLocaleString()}
+            value={formatNumber(summary.totalVolume, locale)}
             unit="kg"
             label={t("volume")}
             delay={0.4}
@@ -73,7 +74,7 @@ export default function WorkoutSummaryPage() {
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {t("exercisesCompleted")}
           </p>
-          <ul className="flex flex-col gap-1.5">
+          <ul className="flex flex-col gap-1.5 lg:grid lg:grid-cols-2 lg:gap-x-6">
             {summary.completedExercises.map((name, i) => (
               <motion.li
                 key={name}
@@ -89,10 +90,10 @@ export default function WorkoutSummaryPage() {
           </ul>
         </div>
 
-        <div className="mt-8 flex flex-col gap-3">
+        <div className="mt-8 flex flex-col items-center gap-3 lg:flex-row lg:justify-center">
           <PrimaryButton
             size="lg"
-            className="w-full"
+            className="w-full lg:w-auto lg:px-8"
             onClick={() => router.push(`/${locale}/workouts`)}
           >
             {t("backToWorkouts")}
