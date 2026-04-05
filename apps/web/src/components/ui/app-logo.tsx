@@ -54,7 +54,9 @@ export function AppLogo({
       alt=""
       width={stackedTextW}
       height={stackedTextH}
-      className="w-auto max-w-full object-contain object-center"
+      sizes={`${stackedTextW}px`}
+      className="h-auto w-full max-w-full object-contain object-center"
+      style={{ maxWidth: stackedTextW }}
       aria-hidden
     />
   );

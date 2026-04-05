@@ -32,7 +32,10 @@ import {
   mergeRemoteAndLocalSessions,
 } from "@/lib/api/session-api";
 import { listUserWorkoutsApi } from "@/lib/api/workout-api";
-import { buildHomeDashboard, type HomeDashboard } from "@/lib/home-dashboard-stats";
+import {
+  buildHomeDashboard,
+  type HomeDashboard,
+} from "@/lib/home-dashboard-stats";
 import { AppLogo } from "@/components/ui/app-logo";
 import type { Workout, SessionSet, WorkoutSession } from "@/types/workouts";
 
@@ -123,7 +126,9 @@ export default function WorkoutsPage() {
 
     try {
       const remote = await listUserSessionsApi(client, "COMPLETED");
-      const local = getWorkoutSessions().filter((s) => s.status === "COMPLETED");
+      const local = getWorkoutSessions().filter(
+        (s) => s.status === "COMPLETED",
+      );
       completedSessions = mergeRemoteAndLocalSessions(remote, local).filter(
         (s) => s.status === "COMPLETED",
       );
@@ -139,7 +144,9 @@ export default function WorkoutsPage() {
       return new Date(bRef).getTime() - new Date(aRef).getTime();
     });
 
-    setDashboard(buildHomeDashboard(completedSessions, { localeForLabels: locale }));
+    setDashboard(
+      buildHomeDashboard(completedSessions, { localeForLabels: locale }),
+    );
     setDashboardLoadState("ready");
   }, [client, locale]);
 
@@ -178,7 +185,7 @@ export default function WorkoutsPage() {
     <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-background w-full">
       <div className="mx-auto w-full max-w-5xl px-2 py-6 sm:px-4">
         <div className="flex items-center justify-between">
-          <AppLogo variant="inline" iconSize={28} />
+          <AppLogo variant="inline" iconSize={40} />
           <div className="flex items-center gap-3">
             {!statsReady ? (
               <div className="h-8 w-24 animate-pulse rounded-lg bg-muted" />
@@ -221,9 +228,7 @@ export default function WorkoutsPage() {
                 action={
                   <button
                     type="button"
-                    onClick={() =>
-                      router.push(`/${locale}/workouts/builder`)
-                    }
+                    onClick={() => router.push(`/${locale}/workouts/builder`)}
                     className="inline-flex items-center gap-1 rounded-md p-1.5 text-primary transition-colors hover:bg-primary/10 sm:px-2 sm:py-1.5"
                     aria-label={t("createWorkout")}
                     title={t("createWorkout")}
@@ -265,9 +270,7 @@ export default function WorkoutsPage() {
                       {t("workoutsEmpty")}
                     </p>
                     <button
-                      onClick={() =>
-                        router.push(`/${locale}/workouts/builder`)
-                      }
+                      onClick={() => router.push(`/${locale}/workouts/builder`)}
                       className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
                     >
                       {t("createWorkout")}
@@ -368,9 +371,7 @@ export default function WorkoutsPage() {
                 action={
                   <button
                     type="button"
-                    onClick={() =>
-                      router.push(`/${locale}/workouts/history`)
-                    }
+                    onClick={() => router.push(`/${locale}/workouts/history`)}
                     className="inline-flex max-w-[min(100%,11rem)] items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-xs font-medium text-primary transition-colors hover:bg-primary/10 sm:max-w-none"
                     aria-label={t("sessionHistory")}
                     title={t("sessionHistory")}
@@ -393,9 +394,7 @@ export default function WorkoutsPage() {
                     {t("lastSessionEmpty")}
                   </p>
                   <button
-                    onClick={() =>
-                      router.push(`/${locale}/workouts/history`)
-                    }
+                    onClick={() => router.push(`/${locale}/workouts/history`)}
                     className="text-xs font-medium text-primary hover:underline"
                   >
                     {t("lastSessionEmptyCta")}
