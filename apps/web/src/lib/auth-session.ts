@@ -1,3 +1,5 @@
+import { isJwtAccessExpired } from "@/lib/jwt-payload";
+
 const STORAGE_KEY = "gymflow_access_token";
 const COOKIE_NAME = "gymflow_access_token";
 /** Aligned with the JWT access token expiresIn of 15 minutes. */
@@ -47,4 +49,23 @@ export function getStoredAccessToken(): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Token to send as Authorization Bearer. If the stored JWT is expired, we omit the header so
+ * the API can fall back to the httpOnly access cookie (passport-jwt tries Bearer before cookie;
+ * a stale Bearer blocks a valid cookie).
+ */
+export function getValidAccessTokenForAuthHeader(): string | null {
+  const raw = getStoredAccessToken();
+  if (!raw) return null;
+  if (isJwtAccessExpired(raw)) {
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+    return null;
+  }
+  return raw;
 }

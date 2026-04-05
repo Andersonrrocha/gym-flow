@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { getStoredAccessToken, clearAuthSession } from "@/lib/auth-session";
+import {
+  getValidAccessTokenForAuthHeader,
+  clearAuthSession,
+} from "@/lib/auth-session";
 import { refreshAccessToken } from "@/lib/refresh-access-token";
 
 function redirectToLogin() {
@@ -16,7 +19,7 @@ export function useProactiveTokenRefresh() {
     if (didMount.current) return;
     didMount.current = true;
 
-    if (getStoredAccessToken()) return;
+    if (getValidAccessTokenForAuthHeader()) return;
 
     void refreshAccessToken().then((ok) => {
       if (!ok) {
@@ -29,7 +32,7 @@ export function useProactiveTokenRefresh() {
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState !== "visible") return;
-      if (getStoredAccessToken()) return;
+      if (getValidAccessTokenForAuthHeader()) return;
 
       void refreshAccessToken().then((ok) => {
         if (!ok) {

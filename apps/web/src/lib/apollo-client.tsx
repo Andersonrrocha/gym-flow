@@ -10,7 +10,10 @@ import {
   InMemoryCache,
 } from "@apollo/client-integration-nextjs";
 import { Observable } from "rxjs";
-import { getStoredAccessToken, clearAuthSession } from "@/lib/auth-session";
+import {
+  getValidAccessTokenForAuthHeader,
+  clearAuthSession,
+} from "@/lib/auth-session";
 import { refreshAccessToken } from "@/lib/refresh-access-token";
 
 function redirectToLogin(): void {
@@ -42,7 +45,7 @@ function makeClient() {
   });
 
   const authLink = new SetContextLink((prevContext) => {
-    const token = getStoredAccessToken();
+    const token = getValidAccessTokenForAuthHeader();
     if (!token) return {};
     const headers = {
       ...(typeof prevContext.headers === "object" && prevContext.headers !== null

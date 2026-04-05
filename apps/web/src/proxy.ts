@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";
+import { isJwtAccessExpired } from "@/lib/jwt-payload";
 
 const ACCESS_TOKEN_COOKIE = "gymflow_access_token";
 /**
@@ -47,6 +48,10 @@ export function proxy(request: NextRequest) {
    */
   const hasSession = Boolean(token ?? refreshToken);
 
+  /** Non-expired JWT in the web-access cookie — used to avoid login↔home loops when the cookie is stale. */
+  const hasValidAccessCookie =
+    Boolean(token) && !isJwtAccessExpired(token as string);
+
   if (locale) {
     const isLoginRoute = pathname === `/${locale}/login`;
     const isSignupRoute = pathname === `/${locale}/signup`;
@@ -56,7 +61,10 @@ export function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
     }
 
-    if (hasSession && (isLocaleRootRoute || isLoginRoute || isSignupRoute)) {
+    if (
+      hasValidAccessCookie &&
+      (isLocaleRootRoute || isLoginRoute || isSignupRoute)
+    ) {
       return NextResponse.redirect(new URL(`/${locale}/workouts`, request.url));
     }
   }
