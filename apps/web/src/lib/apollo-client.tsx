@@ -66,6 +66,12 @@ function makeClient() {
   const errorLink = new ErrorLink(({ error, operation, forward }) => {
     if (typeof window === "undefined") return;
 
+    const opName = operation.operationName;
+    // Wrong password / email maps to UNAUTHENTICATED like expired JWT — must not run refresh here.
+    if (opName === "Login" || opName === "Register") {
+      return;
+    }
+
     const isUnauthenticated =
       (CombinedGraphQLErrors.is(error) &&
         error.errors.some(
