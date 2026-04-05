@@ -1,0 +1,10 @@
+# Optional Render Blueprint — validate in the Render dashboard when importing.
+# Env vars (DATABASE_URL, JWT_*, WEB_URL, APP_ENV) must be set in the service settings.
+
+services:
+  - type: web
+    name: gymflow-api
+    env: node
+    rootDir: .
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @gymflow/api build
+    startCommand: pnpm --filter @gymflow/api start:prod
