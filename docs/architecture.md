@@ -152,6 +152,8 @@ Benefits:
 - reliable migrations
 - ability to scale later without changing architecture
 
+**System exercises** may include an optional stable `catalogKey` (e.g. `bench_press`). The API stores the canonical English `name` plus `catalogKey`; the web app resolves the user-facing label via next-intl (`Exercises.catalog.<catalogKey>`). User-created exercises omit `catalogKey` and display their free-text `name` only.
+
 ---
 
 # Authentication Strategy
@@ -224,6 +226,61 @@ Entities and relationships should be clearly represented in the backend.
 ### Scalability by Design
 
 Even though GymFlow is currently a personal project, architectural decisions aim to avoid limitations as the system grows.
+
+---
+
+# Session Architecture
+
+## Source of Truth
+
+The backend GraphQL API is the **source of truth** for all workout session data.
+
+The frontend (`localStorage`) acts as a **resilience and offline fallback layer** only.
+
+## Session Lifecycle
+
+```
+Start → Active (in-progress) → Finish → Summary → History / Detail
+```
+
+Each step maps to a GraphQL mutation or query:
+
+| Step | Operation |
+|------|-----------|
+| Start | `startSessionFromWorkout(workoutId)` → `WorkoutSession` |
+| Log set | `logSessionSet(input)` → `SessionSet` (create only, no update) |
+| Finish | `finishWorkoutSession(sessionId)` → `WorkoutSession` |
+| Summary | `workoutSession(id)` → read the finished session |
+| History | `listUserSessions(status: COMPLETED)` |
+| Detail | `workoutSession(id)` |
+
+## localStorage Role
+
+localStorage is used for:
+
+- **Active session cache**: the in-progress session is persisted on every state change so a page refresh does not lose the session.
+- **Offline fallback**: if an API call fails, pages fall back to locally stored data (completed sessions list, session detail).
+
+localStorage is **never** used as the primary data source when the API responds successfully.
+
+## Reconciliation (Active Session)
+
+After mount, if the active session originates from the backend (`backendSynced: true`), the page fetches the current server state and merges it with the local cache deterministically:
+
+1. Remote persisted sets are SSOT for that exercise.
+2. Local pending sets (`syncedToBackend: false`) are preserved unless they collide with a remote `setNumber`.
+3. `setNumber` is renormalized `1..n` after merge.
+4. `exercise.completed` is recomputed as: all sets in the merged result have `completed: true`.
+
+## Set Persistence Constraint
+
+`logSessionSet` only supports **create**. There is no `updateSessionSet` mutation.  
+Edits to weight/reps after a set is logged are not persisted to the backend in the current milestone.
+
+## Summary URL Contract
+
+The Summary page is addressed by URL: `/<locale>/workouts/summary?sessionId=<id>`.  
+The `sessionId` query param is set by the Active Workout page on finish. The Summary page never infers the "last session" from localStorage.
 
 ---
 

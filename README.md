@@ -71,6 +71,17 @@ flowchart TB
 
 - PostgreSQL (hosted on Supabase)
 
+### First-time database setup (base exercises)
+
+After applying Prisma migrations, run the seed to create or update system exercises (`isSystem: true`) that every user sees in the exercise library:
+
+```bash
+pnpm --filter @gymflow/api db:migrate:dev
+pnpm db:seed
+```
+
+The seed is idempotent (uses `upsert` with stable ids, e.g. `ex-1` … `ex-10`).
+
 ## 🎯 Why This Stack?
 
 The project is intentionally structured to:
