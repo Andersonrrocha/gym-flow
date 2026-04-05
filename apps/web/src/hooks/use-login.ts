@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useMutation } from "@apollo/client/react";
+import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import {
@@ -10,22 +12,35 @@ import {
 } from "@/graphql/auth/login.mutation";
 import { persistAuthSession } from "@/lib/auth-session";
 
+function extractErrorMessage(e: unknown): string {
+  if (CombinedGraphQLErrors.is(e)) {
+    return (e.errors[0]?.message ?? e.message).toLowerCase();
+  }
+  if (e instanceof Error) return e.message.toLowerCase();
+  return "unknown";
+}
+
 export function useLogin() {
   const router = useRouter();
   const locale = useLocale();
-  const [loginMutation, { loading, error }] = useMutation<
+  const [loginMutation, { loading }] = useMutation<
     LoginResponse,
     { input: LoginInput }
   >(LOGIN_MUTATION);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function login(input: LoginInput) {
-    const { data } = await loginMutation({ variables: { input } });
-
-    if (data?.login.success && data.login.accessToken) {
-      persistAuthSession(data.login.accessToken);
-      router.push(`/${locale}/workouts`);
+    setErrorMessage(null);
+    try {
+      const { data } = await loginMutation({ variables: { input } });
+      if (data?.login.success && data.login.accessToken) {
+        persistAuthSession(data.login.accessToken);
+        router.push(`/${locale}/workouts`);
+      }
+    } catch (e) {
+      setErrorMessage(extractErrorMessage(e));
     }
   }
 
-  return { login, loading, error };
+  return { login, loading, errorMessage };
 }

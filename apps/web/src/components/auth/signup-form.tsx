@@ -15,7 +15,7 @@ import { z } from "zod";
 export function SignupForm() {
   const t = useTranslations("Signup");
   const locale = useLocale();
-  const { register: registerUser, loading, error } = useRegister();
+  const { register: registerUser, loading, errorMessage } = useRegister();
   const schema = createSignupSchema({
     emailRequired: t("emailRequired"),
     emailInvalid: t("emailInvalid"),
@@ -53,7 +53,11 @@ export function SignupForm() {
     await registerUser({ email: values.email, password: values.password });
   });
 
-  const errorMessage = error ? t("genericError") : null;
+  const signupError = errorMessage?.includes("already in use")
+    ? t("emailAlreadyInUse")
+    : errorMessage
+      ? t("genericError")
+      : null;
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-5">
@@ -173,9 +177,9 @@ export function SignupForm() {
         )}
       </div>
 
-      {errorMessage && (
+      {signupError && (
         <p className="text-sm text-destructive" role="alert">
-          {errorMessage}
+          {signupError}
         </p>
       )}
 

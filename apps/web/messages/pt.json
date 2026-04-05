@@ -40,6 +40,7 @@
     "submit": "Cadastrar",
     "hasAccount": "Já tem uma conta?",
     "signInLink": "Entrar",
+    "emailAlreadyInUse": "Este e-mail já está cadastrado.",
     "genericError": "Não foi possível criar sua conta. Tente novamente."
   },
   "Workouts": {

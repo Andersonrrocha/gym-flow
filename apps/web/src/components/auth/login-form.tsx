@@ -11,7 +11,7 @@ import { z } from "zod";
 export function LoginForm() {
   const t = useTranslations("Login");
   const locale = useLocale();
-  const { login, loading, error } = useLogin();
+  const { login, loading, errorMessage } = useLogin();
   const schema = createLoginSchema({
     emailRequired: t("emailRequired"),
     emailInvalid: t("emailInvalid"),
@@ -36,14 +36,13 @@ export function LoginForm() {
     await login(values);
   });
 
-  const normalizedErrorMessage = error?.message?.toLowerCase() ?? "";
-  const errorMessage = normalizedErrorMessage.includes("account not found")
+  const loginError = errorMessage?.includes("account not found")
     ? t("accountNotFound")
-    : normalizedErrorMessage.includes("incorrect password")
+    : errorMessage?.includes("incorrect password")
       ? t("incorrectPassword")
-      : normalizedErrorMessage.includes("credentials")
+      : errorMessage?.includes("credentials")
         ? t("invalidCredentials")
-        : error
+        : errorMessage
           ? t("genericError")
           : null;
 
@@ -95,9 +94,9 @@ export function LoginForm() {
         )}
       </div>
 
-      {errorMessage && (
+      {loginError && (
         <p className="text-sm text-destructive" role="alert">
-          {errorMessage}
+          {loginError}
         </p>
       )}
 

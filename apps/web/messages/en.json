@@ -40,6 +40,7 @@
     "submit": "Sign up",
     "hasAccount": "Already have an account?",
     "signInLink": "Sign in",
+    "emailAlreadyInUse": "This email is already registered.",
     "genericError": "Could not create your account. Please try again."
   },
   "Workouts": {
