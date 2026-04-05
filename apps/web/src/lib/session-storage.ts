@@ -1,3 +1,24 @@
+/**
+ * Session persistence via localStorage — resilience and offline fallback layer.
+ *
+ * Lifecycle:
+ *  1. saveActiveSession  — cache written on every in-progress session state change
+ *  2. getActiveSession   — read once on ActiveWorkoutPage mount to restore state
+ *  3. clearActiveSession — called when the user finishes or cancels the workout
+ *  4. saveWorkoutSession — appends the completed session as an offline fallback copy
+ *  5. getWorkoutSessions / getWorkoutSessionById — fallback reads when backend is unavailable
+ *
+ * Role:
+ *  localStorage is NOT the source of truth. The backend (GraphQL API) is primary.
+ *  These functions exist for resilience (page refresh during workout) and offline fallback
+ *  when API calls fail. Pages always prefer backend data and use localStorage only as a
+ *  secondary option.
+ *
+ * All keys use a versioned envelope. If the stored version doesn't match
+ * STORAGE_VERSION the data is treated as stale and the key is removed so
+ * subsequent reads don't silently re-attempt parsing.
+ */
+
 import type { WorkoutSession } from "@/types/workouts";
 
 const ACTIVE_SESSION_KEY = "gymflow_active_session";
@@ -18,10 +39,17 @@ function readJSON<T>(key: string): T | null {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return null;
+
     const envelope: StorageEnvelope<T> = JSON.parse(raw);
-    if (envelope.version !== STORAGE_VERSION) return null;
+
+    if (envelope.version !== STORAGE_VERSION) {
+      localStorage.removeItem(key);
+      return null;
+    }
+
     return envelope.data;
   } catch {
+    localStorage.removeItem(key);
     return null;
   }
 }

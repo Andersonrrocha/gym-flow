@@ -1,9 +1,12 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import { motion } from "motion/react";
+import { resolveExerciseDisplayName } from "@/lib/exercise-display-name";
+import { AnimatePresence, motion } from "motion/react";
 import type { SessionExercise } from "@/types/workouts";
 import { SetRow } from "./set-row";
+import { ClockIcon } from "@/components/workouts/dashboard-action-icons";
 
 type ExerciseBlockProps = {
   exercise: SessionExercise;
@@ -22,7 +25,41 @@ type ExerciseBlockProps = {
   historyLabel?: string;
   completeLabel?: string;
   completedLabel?: string;
+  setUnitKg?: string;
+  setUnitReps?: string;
+  setWeightDownAria?: string;
+  setWeightUpAria?: string;
+  setRepsDownAria?: string;
+  setRepsUpAria?: string;
   className?: string;
+};
+
+function stopProp(e: React.MouseEvent | React.KeyboardEvent) {
+  e.stopPropagation();
+}
+
+const activePanelVariants = {
+  open: {
+    height: "auto" as const,
+    opacity: 1,
+    transition: {
+      height: {
+        type: "spring" as const,
+        stiffness: 400,
+        damping: 36,
+        mass: 0.9,
+      },
+      opacity: { duration: 0.22, ease: "easeOut" as const },
+    },
+  },
+  closed: {
+    height: 0,
+    opacity: 0,
+    transition: {
+      height: { duration: 0.26, ease: [0.4, 0, 0.2, 1] as const },
+      opacity: { duration: 0.14, ease: "easeIn" as const },
+    },
+  },
 };
 
 export function ExerciseBlock({
@@ -42,23 +79,33 @@ export function ExerciseBlock({
   historyLabel = "History",
   completeLabel = "Complete Exercise",
   completedLabel = "Completed",
+  setUnitKg = "kg",
+  setUnitReps = "reps",
+  setWeightDownAria = "Decrease weight",
+  setWeightUpAria = "Increase weight",
+  setRepsDownAria = "Decrease reps",
+  setRepsUpAria = "Increase reps",
   className,
 }: ExerciseBlockProps) {
+  const tCatalog = useTranslations("Exercises.catalog");
+  const displayName = resolveExerciseDisplayName(
+    tCatalog,
+    exercise.exerciseCatalogKey,
+    exercise.nameSnapshot,
+  );
   const completedSets = exercise.sets.filter((s) => s.completed).length;
   const totalSets = exercise.sets.length;
   const allSetsCompleted = totalSets > 0 && completedSets === totalSets;
 
   return (
-    <motion.div
+    <div
       className={cn(
-        "cursor-pointer rounded-xl border p-3 transition-colors",
-        isActive && isCompleted
-          ? "border-primary/40 bg-success/10 ring-1 ring-primary/20"
-          : isCompleted
-            ? "border-success/30 bg-success/5"
-            : isActive
-            ? "border-primary/30 bg-card"
-            : "border-transparent bg-card/50",
+        "rounded-xl border p-3 transition-[border-color,box-shadow,background-color] duration-200 ease-out",
+        isCompleted
+          ? "border-success/30 bg-success/5"
+          : isActive
+            ? "border-primary/40 bg-card ring-2 ring-primary/20 shadow-sm"
+            : "cursor-pointer border-transparent bg-card/50 hover:border-border/50",
         className,
       )}
       role="button"
@@ -71,29 +118,38 @@ export function ExerciseBlock({
           onSelect?.();
         }
       }}
-      layout
     >
       <div className="mb-2 flex items-center justify-between gap-2">
         <h3
           className={cn(
-            "min-w-0 flex-1 truncate text-sm font-bold tracking-tight",
+            "min-w-0 flex-1 truncate font-bold tracking-tight",
+            isActive ? "text-sm" : "text-sm",
             isCompleted ? "text-success" : "text-foreground",
           )}
         >
           {isCompleted && "✓ "}
-          {exercise.nameSnapshot}
+          {displayName}
         </h3>
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            onOpenHistory?.(exercise.exerciseId, exercise.nameSnapshot);
+            onOpenHistory?.(exercise.exerciseId, displayName);
           }}
-          className="shrink-0 rounded-md border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
+          className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-border text-primary transition-colors hover:border-primary/50 hover:bg-primary/10"
+          aria-label={historyLabel}
+          title={historyLabel}
         >
-          {historyLabel}
+          <ClockIcon className="size-4" />
         </button>
-        <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted-foreground">
+        <span
+          className={cn(
+            "shrink-0 font-mono text-[11px] tabular-nums",
+            allSetsCompleted && totalSets > 0
+              ? "font-semibold text-success"
+              : "text-muted-foreground",
+          )}
+        >
           {completedSets}/{totalSets}
         </span>
       </div>
@@ -104,46 +160,80 @@ export function ExerciseBlock({
         </p>
       )}
 
-      {isActive && (
-        <div className="flex flex-col gap-1.5">
-          {exercise.sets.map((set) => (
-            <SetRow
-              key={set.id}
-              set={set}
-              canRemove={exercise.sets.length > 1}
-              removeLabel={removeSetLabel}
-              onToggle={onToggleSet}
-              onRemove={onRemoveSet}
-              onUpdateWeight={onUpdateWeight}
-              onUpdateReps={onUpdateReps}
-            />
-          ))}
-
-          <div className="mt-2 flex items-center justify-between">
-            <button
-              onClick={() => onAddSet?.(exercise.id)}
-              className="text-xs font-medium text-primary hover:underline"
+      <AnimatePresence initial={false}>
+        {isActive && (
+          <motion.div
+            key="active-panel"
+            variants={activePanelVariants}
+            initial="closed"
+            animate="open"
+            exit="closed"
+            className="overflow-hidden"
+          >
+            <div
+              role="presentation"
+              className="flex flex-col gap-1.5 pt-1"
+              onClick={stopProp}
+              onKeyDown={stopProp}
             >
-              {addSetLabel}
-            </button>
+              {exercise.sets.map((set, index) => (
+                <SetRow
+                  key={set.id}
+                  set={set}
+                  canRemove={exercise.sets.length > 1}
+                  removeLabel={removeSetLabel}
+                  onToggle={onToggleSet}
+                  onRemove={onRemoveSet}
+                  onUpdateWeight={onUpdateWeight}
+                  onUpdateReps={onUpdateReps}
+                  weightUnitLabel={setUnitKg}
+                  repsUnitLabel={setUnitReps}
+                  weightDecreaseAria={setWeightDownAria}
+                  weightIncreaseAria={setWeightUpAria}
+                  repsDecreaseAria={setRepsDownAria}
+                  repsIncreaseAria={setRepsUpAria}
+                  motionDelay={index * 0.04}
+                />
+              ))}
 
-            {allSetsCompleted && !isCompleted && (
-              <button
-                onClick={() => onComplete?.(exercise.id)}
-                className="rounded-md bg-success px-3 py-1 text-xs font-semibold text-success-foreground transition-all hover:brightness-110 active:scale-[0.97]"
-              >
-                {completeLabel}
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+              <div className="mt-2 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => onAddSet?.(exercise.id)}
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  {addSetLabel}
+                </button>
 
-      {isCompleted && !isActive && (
-        <p className="text-[11px] font-medium text-success/70">
-          {completedLabel}
-        </p>
-      )}
-    </motion.div>
+                {allSetsCompleted && !isCompleted && (
+                  <button
+                    type="button"
+                    onClick={() => onComplete?.(exercise.id)}
+                    className="rounded-md bg-success px-3 py-1 text-xs font-semibold text-success-foreground transition-all hover:brightness-110 active:scale-[0.97]"
+                  >
+                    {completeLabel}
+                  </button>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence initial={false}>
+        {isCompleted && !isActive && (
+          <motion.p
+            key="completed-hint"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -2 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="text-[11px] font-medium text-success/70"
+          >
+            {completedLabel}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

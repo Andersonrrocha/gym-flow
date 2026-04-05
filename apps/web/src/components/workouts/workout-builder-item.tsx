@@ -1,4 +1,8 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { resolveExerciseDisplayName } from "@/lib/exercise-display-name";
 import type { WorkoutExercise } from "@/types/workouts";
 
 type WorkoutBuilderItemProps = {
@@ -12,6 +16,13 @@ export function WorkoutBuilderItem({
   onRemove,
   className,
 }: WorkoutBuilderItemProps) {
+  const tCatalog = useTranslations("Exercises.catalog");
+  const title = resolveExerciseDisplayName(
+    tCatalog,
+    item.exercise.catalogKey,
+    item.exercise.name,
+  );
+
   return (
     <div
       className={cn(
@@ -25,7 +36,7 @@ export function WorkoutBuilderItem({
 
       <div className="flex-1 min-w-0">
         <p className="truncate text-sm font-medium text-foreground">
-          {item.exercise.name}
+          {title}
         </p>
         <p className="text-[11px] text-muted-foreground">
           {item.plannedSets} × {item.plannedReps}

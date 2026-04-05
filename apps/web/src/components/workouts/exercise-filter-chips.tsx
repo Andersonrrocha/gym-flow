@@ -7,6 +7,8 @@ type ExerciseFilterChipsProps = {
   selected: string | null;
   onSelect: (value: string | null) => void;
   className?: string;
+  allLabel?: string;
+  translateLabel?: (key: string) => string;
 };
 
 export function ExerciseFilterChips({
@@ -14,6 +16,8 @@ export function ExerciseFilterChips({
   selected,
   onSelect,
   className,
+  allLabel = "All",
+  translateLabel,
 }: ExerciseFilterChipsProps) {
   return (
     <div className={cn("flex flex-wrap gap-1.5", className)}>
@@ -26,7 +30,7 @@ export function ExerciseFilterChips({
             : "bg-muted text-muted-foreground hover:bg-muted/80",
         )}
       >
-        All
+        {allLabel}
       </button>
       {options.map((opt) => (
         <button
@@ -39,7 +43,7 @@ export function ExerciseFilterChips({
               : "bg-muted text-muted-foreground hover:bg-muted/80",
           )}
         >
-          {opt}
+          {translateLabel ? translateLabel(opt) : opt}
         </button>
       ))}
     </div>

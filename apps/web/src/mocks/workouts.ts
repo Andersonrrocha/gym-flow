@@ -1,6 +1,5 @@
 import type {
   Exercise,
-  ExerciseHistory,
   LastWorkoutSummary,
   SessionExercise,
   TodayWorkout,
@@ -13,6 +12,7 @@ import type {
 const exercises: Record<string, Exercise> = {
   bench: {
     id: "ex-1",
+    catalogKey: "bench_press",
     name: "Bench Press",
     muscleGroup: "chest",
     equipment: "barbell",
@@ -20,6 +20,7 @@ const exercises: Record<string, Exercise> = {
   },
   squat: {
     id: "ex-2",
+    catalogKey: "barbell_squat",
     name: "Barbell Squat",
     muscleGroup: "legs",
     equipment: "barbell",
@@ -27,6 +28,7 @@ const exercises: Record<string, Exercise> = {
   },
   row: {
     id: "ex-3",
+    catalogKey: "barbell_row",
     name: "Barbell Row",
     muscleGroup: "back",
     equipment: "barbell",
@@ -34,6 +36,7 @@ const exercises: Record<string, Exercise> = {
   },
   ohp: {
     id: "ex-4",
+    catalogKey: "overhead_press",
     name: "Overhead Press",
     muscleGroup: "shoulders",
     equipment: "barbell",
@@ -41,6 +44,7 @@ const exercises: Record<string, Exercise> = {
   },
   curl: {
     id: "ex-5",
+    catalogKey: "dumbbell_curl",
     name: "Dumbbell Curl",
     muscleGroup: "biceps",
     equipment: "dumbbell",
@@ -48,6 +52,7 @@ const exercises: Record<string, Exercise> = {
   },
   tricepPushdown: {
     id: "ex-6",
+    catalogKey: "tricep_pushdown",
     name: "Tricep Pushdown",
     muscleGroup: "triceps",
     equipment: "cable",
@@ -55,6 +60,7 @@ const exercises: Record<string, Exercise> = {
   },
   latPulldown: {
     id: "ex-7",
+    catalogKey: "lat_pulldown",
     name: "Lat Pulldown",
     muscleGroup: "back",
     equipment: "cable",
@@ -62,6 +68,7 @@ const exercises: Record<string, Exercise> = {
   },
   legPress: {
     id: "ex-8",
+    catalogKey: "leg_press",
     name: "Leg Press",
     muscleGroup: "legs",
     equipment: "machine",
@@ -69,6 +76,7 @@ const exercises: Record<string, Exercise> = {
   },
   lateralRaise: {
     id: "ex-9",
+    catalogKey: "lateral_raise",
     name: "Lateral Raise",
     muscleGroup: "shoulders",
     equipment: "dumbbell",
@@ -76,21 +84,13 @@ const exercises: Record<string, Exercise> = {
   },
   plank: {
     id: "ex-10",
+    catalogKey: "plank",
     name: "Plank",
     muscleGroup: "core",
     equipment: "bodyweight",
     isSystem: true,
   },
 };
-
-export const exerciseCatalogMock: Exercise[] = Object.values(exercises);
-
-export const recentExercisesMock: Exercise[] = [
-  exercises.bench,
-  exercises.squat,
-  exercises.row,
-  exercises.ohp,
-];
 
 export const todayWorkoutMock: TodayWorkout = {
   id: "schedule-1",
@@ -128,6 +128,7 @@ const pushDayExercises: SessionExercise[] = [
   {
     id: "se-1",
     exerciseId: "ex-1",
+    exerciseCatalogKey: "bench_press",
     nameSnapshot: "Bench Press",
     plannedSets: 4,
     plannedReps: "8-10",
@@ -143,6 +144,7 @@ const pushDayExercises: SessionExercise[] = [
   {
     id: "se-2",
     exerciseId: "ex-4",
+    exerciseCatalogKey: "overhead_press",
     nameSnapshot: "Overhead Press",
     plannedSets: 3,
     plannedReps: "8-12",
@@ -157,6 +159,7 @@ const pushDayExercises: SessionExercise[] = [
   {
     id: "se-3",
     exerciseId: "ex-9",
+    exerciseCatalogKey: "lateral_raise",
     nameSnapshot: "Lateral Raise",
     plannedSets: 3,
     plannedReps: "12-15",
@@ -171,6 +174,7 @@ const pushDayExercises: SessionExercise[] = [
   {
     id: "se-4",
     exerciseId: "ex-6",
+    exerciseCatalogKey: "tricep_pushdown",
     nameSnapshot: "Tricep Pushdown",
     plannedSets: 3,
     plannedReps: "10-12",
@@ -185,6 +189,7 @@ const pushDayExercises: SessionExercise[] = [
   {
     id: "se-5",
     exerciseId: "ex-5",
+    exerciseCatalogKey: "dumbbell_curl",
     nameSnapshot: "Dumbbell Curl",
     plannedSets: 3,
     plannedReps: "10-12",
@@ -216,45 +221,11 @@ export const workoutSessionSummaryMock: WorkoutSessionSummary = {
   totalVolume: 4320,
   durationMinutes: 52,
   completedExercises: [
-    "Bench Press",
-    "Overhead Press",
-    "Lateral Raise",
-    "Tricep Pushdown",
-    "Dumbbell Curl",
-  ],
-};
-
-export const exerciseHistoryMock: ExerciseHistory = {
-  exercise: exercises.bench,
-  pr: { weight: 90, reps: 6, date: "2026-02-20" },
-  sessions: [
-    {
-      date: "2026-03-05",
-      sets: [
-        { setNumber: 1, weight: 80, reps: 10 },
-        { setNumber: 2, weight: 80, reps: 9 },
-        { setNumber: 3, weight: 80, reps: 8 },
-        { setNumber: 4, weight: 85, reps: 6 },
-      ],
-    },
-    {
-      date: "2026-03-01",
-      sets: [
-        { setNumber: 1, weight: 80, reps: 10 },
-        { setNumber: 2, weight: 80, reps: 10 },
-        { setNumber: 3, weight: 80, reps: 9 },
-        { setNumber: 4, weight: 80, reps: 8 },
-      ],
-    },
-    {
-      date: "2026-02-26",
-      sets: [
-        { setNumber: 1, weight: 75, reps: 10 },
-        { setNumber: 2, weight: 75, reps: 10 },
-        { setNumber: 3, weight: 80, reps: 8 },
-        { setNumber: 4, weight: 80, reps: 7 },
-      ],
-    },
+    { nameSnapshot: "Bench Press", exerciseCatalogKey: "bench_press" },
+    { nameSnapshot: "Overhead Press", exerciseCatalogKey: "overhead_press" },
+    { nameSnapshot: "Lateral Raise", exerciseCatalogKey: "lateral_raise" },
+    { nameSnapshot: "Tricep Pushdown", exerciseCatalogKey: "tricep_pushdown" },
+    { nameSnapshot: "Dumbbell Curl", exerciseCatalogKey: "dumbbell_curl" },
   ],
 };
 

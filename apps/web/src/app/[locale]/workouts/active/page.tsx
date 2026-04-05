@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo, useEffect } from "react";
+import { useApolloClient } from "@apollo/client/react";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -9,7 +10,6 @@ import { WorkoutProgress } from "@/components/workouts/WorkoutProgress";
 import { ExerciseBlock } from "@/components/workouts/ExerciseBlock";
 import { ExerciseHistoryModal } from "@/components/workouts/ExerciseHistoryModal";
 import { PrimaryButton } from "@/components/workouts/primary-button";
-import { activeWorkoutSessionMock } from "@/mocks/workouts";
 import {
   getActiveSession,
   saveActiveSession,
@@ -21,16 +21,38 @@ import {
   deriveExerciseHistory,
   type ExerciseHistoryData,
 } from "@/lib/workout-metrics";
+import { resolveExerciseDisplayName } from "@/lib/exercise-display-name";
+import { normalizeSession } from "@/lib/session-normalize";
+import { reconcileActiveSession } from "@/lib/session-reconcile";
+import {
+  finishWorkoutSessionApi,
+  getWorkoutSessionByIdApi,
+  listUserSessionsApi,
+  logSessionSetApi,
+  mergeRemoteAndLocalSessions,
+} from "@/lib/api/session-api";
 import type { WorkoutSession } from "@/types/workouts";
+
+const PLACEHOLDER_SESSION: WorkoutSession = {
+  id: "",
+  workoutId: "",
+  workoutName: null,
+  status: "IN_PROGRESS",
+  startedAt: new Date(0).toISOString(),
+  finishedAt: null,
+  exercises: [],
+};
 
 export default function ActiveWorkoutPage() {
   const t = useTranslations("WorkoutActive");
+  const tCatalog = useTranslations("Exercises.catalog");
   const locale = useLocale();
   const router = useRouter();
+  const client = useApolloClient();
 
-  // Keep first render deterministic for SSR/client hydration.
-  const [session, setSession] = useState<WorkoutSession>(activeWorkoutSessionMock);
+  const [session, setSession] = useState<WorkoutSession>(PLACEHOLDER_SESSION);
   const [sessionHydrated, setSessionHydrated] = useState(false);
+  const [sessionReconciled, setSessionReconciled] = useState(false);
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(
     null,
   );
@@ -40,12 +62,14 @@ export default function ActiveWorkoutPage() {
   }>({ isOpen: false, data: null });
 
   const handleOpenHistory = useCallback(
-    (exerciseId: string, exerciseName: string) => {
-      const sessions = getWorkoutSessions();
+    async (exerciseId: string, exerciseName: string) => {
+      const local = getWorkoutSessions();
+      const remote = await listUserSessionsApi(client, "COMPLETED");
+      const sessions = mergeRemoteAndLocalSessions(remote, local);
       const data = deriveExerciseHistory(exerciseId, exerciseName, sessions);
       setHistoryModal({ isOpen: true, data });
     },
-    [],
+    [client],
   );
 
   const handleCloseHistory = useCallback(() => {
@@ -55,14 +79,39 @@ export default function ActiveWorkoutPage() {
   useEffect(() => {
     const storedSession = getActiveSession();
     if (storedSession) {
-      setSession(storedSession);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- SSR-safe localStorage hydration
+      setSession(normalizeSession(storedSession));
     }
     setSessionHydrated(true);
   }, []);
 
   useEffect(() => {
+    if (!sessionHydrated || sessionReconciled) return;
+
+    const stored = getActiveSession();
+    let cancelled = false;
+
+    if (!stored?.backendSynced) {
+      queueMicrotask(() => setSessionReconciled(true));
+      return;
+    }
+
+    queueMicrotask(() => setSessionReconciled(true));
+
+    void (async () => {
+      const remote = await getWorkoutSessionByIdApi(client, stored.id);
+      if (!cancelled && remote) {
+        setSession((prev) => reconcileActiveSession(prev, remote));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionHydrated, sessionReconciled, client]);
+
+  useEffect(() => {
     if (!sessionHydrated) return;
-    saveActiveSession(session);
+    saveActiveSession(normalizeSession(session));
   }, [session, sessionHydrated]);
 
   const autoActiveIndex = useMemo(() => {
@@ -72,6 +121,7 @@ export default function ActiveWorkoutPage() {
 
   useEffect(() => {
     if (session.exercises.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync derived state after hydration
       setSelectedExerciseId(null);
       return;
     }
@@ -104,17 +154,87 @@ export default function ActiveWorkoutPage() {
       ? session.exercises[activeIndex + 1]
       : null;
 
-  const handleToggleSet = useCallback((setId: string) => {
-    setSession((prev) => ({
-      ...prev,
-      exercises: prev.exercises.map((ex) => ({
-        ...ex,
-        sets: ex.sets.map((s) =>
-          s.id === setId ? { ...s, completed: !s.completed } : s,
-        ),
-      })),
-    }));
-  }, []);
+  const nextExerciseLabel = nextExercise
+    ? resolveExerciseDisplayName(
+        tCatalog,
+        nextExercise.exerciseCatalogKey,
+        nextExercise.nameSnapshot,
+      )
+    : null;
+
+  const handleToggleSet = useCallback(
+    (setId: string) => {
+      setSession((prev) => {
+        let sync:
+          | {
+              sessionExerciseId: string;
+              reps: number;
+              weight: number;
+              setNumber: number;
+              localSetId: string;
+            }
+          | undefined;
+
+        for (const ex of prev.exercises) {
+          const s = ex.sets.find((x) => x.id === setId);
+          if (!s) continue;
+          const nextCompleted = !s.completed;
+          if (nextCompleted && prev.backendSynced && !s.syncedToBackend) {
+            sync = {
+              sessionExerciseId: ex.id,
+              reps: s.reps,
+              weight: s.weight,
+              setNumber: s.setNumber,
+              localSetId: setId,
+            };
+          }
+          break;
+        }
+
+        const next: WorkoutSession = {
+          ...prev,
+          exercises: prev.exercises.map((ex) => ({
+            ...ex,
+            sets: ex.sets.map((s) =>
+              s.id === setId ? { ...s, completed: !s.completed } : s,
+            ),
+          })),
+        };
+
+        if (sync) {
+          const payload = sync;
+          queueMicrotask(() => {
+            void logSessionSetApi(client, {
+              sessionExerciseId: payload.sessionExerciseId,
+              reps: payload.reps,
+              weight: payload.weight,
+              setNumber: payload.setNumber,
+            }).then((row) => {
+              if (!row) return;
+              setSession((p) => ({
+                ...p,
+                exercises: p.exercises.map((ex) => ({
+                  ...ex,
+                  sets: ex.sets.map((s) =>
+                    s.id === payload.localSetId
+                      ? {
+                          ...row,
+                          completed: true,
+                          syncedToBackend: true,
+                        }
+                      : s,
+                  ),
+                })),
+              }));
+            });
+          });
+        }
+
+        return next;
+      });
+    },
+    [client],
+  );
 
   const handleUpdateWeight = useCallback((setId: string, weight: number) => {
     setSession((prev) => ({
@@ -153,6 +273,7 @@ export default function ActiveWorkoutPage() {
               reps: lastSet?.reps ?? 0,
               completed: false,
               createdAt: new Date().toISOString(),
+              syncedToBackend: false,
             },
           ],
         };
@@ -179,143 +300,155 @@ export default function ActiveWorkoutPage() {
     }));
   }, []);
 
-  const handleCompleteExercise = useCallback(
-    (exerciseId: string) => {
-      setSession((prev) => {
-        const updated = {
-          ...prev,
-          exercises: prev.exercises.map((ex) =>
-            ex.id === exerciseId ? { ...ex, completed: true } : ex,
-          ),
-        };
+  const handleCompleteExercise = useCallback((exerciseId: string) => {
+    setSession((prev) => {
+      const updated = {
+        ...prev,
+        exercises: prev.exercises.map((ex) =>
+          ex.id === exerciseId ? { ...ex, completed: true } : ex,
+        ),
+      };
 
-        const nextToSelect =
-          updated.exercises.find((ex) => !ex.completed) ?? null;
-        if (nextToSelect) {
-          setSelectedExerciseId(nextToSelect.id);
-        }
+      const nextToSelect =
+        updated.exercises.find((ex) => !ex.completed) ?? null;
+      if (nextToSelect) {
+        setSelectedExerciseId(nextToSelect.id);
+      }
 
-        return updated;
-      });
-    },
-    [],
-  );
+      return updated;
+    });
+  }, []);
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     const completedSession: WorkoutSession = {
       ...session,
       status: "COMPLETED",
       finishedAt: new Date().toISOString(),
     };
+
+    if (session.backendSynced) {
+      await finishWorkoutSessionApi(client, session.id);
+    }
+
     saveWorkoutSession(completedSession);
     clearActiveSession();
-    router.push(`/${locale}/workouts/summary`);
+    router.push(`/${locale}/workouts/summary?sessionId=${session.id}`);
   };
 
   return (
-    <main className="min-h-dvh bg-background">
-      <div className="mx-auto max-w-5xl">
-        <WorkoutHeader
-          workoutName={session.workoutName ?? "Workout"}
-          startedAt={session.startedAt}
-        />
+    <main className="fixed inset-0 z-0 flex flex-col bg-background pt-[env(safe-area-inset-top)] lg:relative lg:inset-auto lg:z-auto lg:flex-1 lg:min-h-0 lg:pt-0">
+      <header className="shrink-0 border-b border-border/50 bg-background">
+        <div className="mx-auto w-full max-w-5xl px-2 pb-3 pt-2 sm:px-4">
+          <WorkoutHeader
+            workoutName={session.workoutName ?? "Workout"}
+            startedAt={session.startedAt}
+            backHref="/workouts"
+            backAriaLabel={t("leaveWorkout")}
+          />
+          <WorkoutProgress
+            className="mt-2"
+            completed={completedCount}
+            total={totalExercises}
+            label={t("progress")}
+          />
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            {t("tapToEdit")}
+          </p>
+        </div>
+      </header>
 
-        <div className="lg:grid lg:grid-cols-3 lg:gap-6 lg:px-4">
-          {/* Exercise list — main column */}
-          <div className="lg:col-span-2">
-            <div className="px-4 lg:px-0">
-              <WorkoutProgress
-                completed={completedCount}
-                total={totalExercises}
-                label={t("progress")}
-              />
-              <p className="mt-2 text-[11px] text-muted-foreground">
-                {t("tapToEdit")}
-              </p>
+      <div className="flex-1 overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]">
+        <div className="mx-auto w-full max-w-5xl px-2 sm:px-4">
+          <div className="lg:grid lg:grid-cols-3 lg:gap-6">
+            <div className="lg:col-span-2">
+              <div className="mt-4 flex flex-col gap-2 pb-40 lg:pb-6">
+                {session.exercises.map((ex) => (
+                  <ExerciseBlock
+                    key={ex.id}
+                    exercise={ex}
+                    isActive={ex.id === activeExerciseId}
+                    isCompleted={ex.completed}
+                    onSelect={() => setSelectedExerciseId(ex.id)}
+                    onOpenHistory={handleOpenHistory}
+                    onToggleSet={handleToggleSet}
+                    onUpdateWeight={handleUpdateWeight}
+                    onUpdateReps={handleUpdateReps}
+                    onRemoveSet={handleRemoveSet}
+                    onAddSet={handleAddSet}
+                    onComplete={handleCompleteExercise}
+                    addSetLabel={t("addSet")}
+                    removeSetLabel={t("removeSet")}
+                    historyLabel={t("historyButton")}
+                    completeLabel={t("completeExercise")}
+                    completedLabel={t("completed")}
+                    setUnitKg={t("setUnitKg")}
+                    setUnitReps={t("setUnitReps")}
+                    setWeightDownAria={t("setWeightDown")}
+                    setWeightUpAria={t("setWeightUp")}
+                    setRepsDownAria={t("setRepsDown")}
+                    setRepsUpAria={t("setRepsUp")}
+                  />
+                ))}
+              </div>
             </div>
 
-            <div className="mt-4 flex flex-col gap-2 px-4 pb-32 lg:px-0 lg:pb-6">
-              {session.exercises.map((ex) => (
-                <ExerciseBlock
-                  key={ex.id}
-                  exercise={ex}
-                  isActive={ex.id === activeExerciseId}
-                  isCompleted={ex.completed}
-                  onSelect={() => setSelectedExerciseId(ex.id)}
-                  onOpenHistory={handleOpenHistory}
-                  onToggleSet={handleToggleSet}
-                  onUpdateWeight={handleUpdateWeight}
-                  onUpdateReps={handleUpdateReps}
-                  onRemoveSet={handleRemoveSet}
-                  onAddSet={handleAddSet}
-                  onComplete={handleCompleteExercise}
-                  addSetLabel={t("addSet")}
-                  removeSetLabel={t("removeSet")}
-                  historyLabel={t("historyButton")}
-                  completeLabel={t("completeExercise")}
-                  completedLabel={t("completed")}
-                />
-              ))}
-            </div>
-          </div>
+            <div className="hidden lg:block">
+              <div className="sticky top-6 flex flex-col gap-4">
+                {nextExercise && (
+                  <div className="rounded-lg border border-dashed border-border/50 p-3">
+                    <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                      {t("upNext")}
+                    </p>
+                    <p className="mt-0.5 text-sm font-semibold text-foreground/80">
+                      {nextExerciseLabel}
+                    </p>
+                  </div>
+                )}
 
-          {/* Sidebar — desktop only sticky panel */}
-          <div className="hidden lg:block">
-            <div className="sticky top-6 flex flex-col gap-4">
-              {nextExercise && (
-                <div className="rounded-lg border border-dashed border-border/50 p-3">
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                    {t("upNext")}
-                  </p>
-                  <p className="mt-0.5 text-sm font-semibold text-foreground/80">
-                    {nextExercise.nameSnapshot}
-                  </p>
-                </div>
-              )}
-
-              <PrimaryButton
-                size="lg"
-                className="w-full"
-                onClick={handleFinish}
-                disabled={!allExercisesDone}
-              >
-                {allExercisesDone
-                  ? t("finishWorkout")
-                  : t("exercisesRemaining", {
-                      count: totalExercises - completedCount,
-                    })}
-              </PrimaryButton>
+                <PrimaryButton
+                  size="lg"
+                  className="w-full"
+                  onClick={handleFinish}
+                  disabled={!allExercisesDone}
+                  aria-disabled={!allExercisesDone}
+                >
+                  {allExercisesDone
+                    ? t("finishWorkout")
+                    : t("exercisesRemaining", {
+                        count: totalExercises - completedCount,
+                      })}
+                </PrimaryButton>
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Mobile — up next + sticky bottom bar */}
+      <div className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom))] left-0 right-0 z-30 border-t border-border bg-background/80 backdrop-blur-md lg:hidden">
         {nextExercise && (
-          <div className="mx-4 -mt-28 mb-2 rounded-lg border border-dashed border-border/50 p-3 lg:hidden">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          <div className="border-b border-border/30 px-2 py-2 sm:px-4">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               {t("upNext")}
             </p>
-            <p className="mt-0.5 text-sm font-semibold text-foreground/80">
-              {nextExercise.nameSnapshot}
+            <p className="text-sm font-semibold text-foreground/80">
+              {nextExerciseLabel}
             </p>
           </div>
         )}
-
-        <div className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom))] left-0 right-0 border-t border-border bg-background/80 px-4 py-3 backdrop-blur-md lg:hidden">
-          <div className="mx-auto max-w-lg">
-            <PrimaryButton
-              size="lg"
-              className="w-full"
-              onClick={handleFinish}
-              disabled={!allExercisesDone}
-            >
-              {allExercisesDone
-                ? t("finishWorkout")
-                : t("exercisesRemaining", {
-                    count: totalExercises - completedCount,
-                  })}
-            </PrimaryButton>
-          </div>
+        <div className="w-full px-2 py-3 sm:px-4">
+          <PrimaryButton
+            size="lg"
+            className="w-full"
+            onClick={handleFinish}
+            disabled={!allExercisesDone}
+            aria-disabled={!allExercisesDone}
+          >
+            {allExercisesDone
+              ? t("finishWorkout")
+              : t("exercisesRemaining", {
+                  count: totalExercises - completedCount,
+                })}
+          </PrimaryButton>
         </div>
       </div>
 

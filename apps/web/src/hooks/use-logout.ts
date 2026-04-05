@@ -7,6 +7,7 @@ import {
   LOGOUT_MUTATION,
   type LogoutResponse,
 } from "@/graphql/auth/logout.mutation";
+import { clearAuthSession } from "@/lib/auth-session";
 
 export function useLogout() {
   const router = useRouter();
@@ -15,8 +16,13 @@ export function useLogout() {
     useMutation<LogoutResponse>(LOGOUT_MUTATION);
 
   async function logout() {
-    await logoutMutation();
-    router.replace(`/${locale}/login`);
+    try {
+      await logoutMutation();
+    } catch {
+    } finally {
+      clearAuthSession();
+      router.replace(`/${locale}/login`);
+    }
   }
 
   return { logout, loading, error };

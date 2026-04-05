@@ -74,7 +74,7 @@ export const navigationItems: NavigationItem[] = [
     labelKey: "exercises",
     href: "/exercises",
     icon: ListIcon,
-    enabled: false,
+    enabled: true,
   },
   {
     key: "schedule",

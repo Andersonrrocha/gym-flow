@@ -26,7 +26,10 @@ export function computeSessionMetrics(
 
   const completedExercises = session.exercises
     .filter((ex) => ex.completed)
-    .map((ex) => ex.nameSnapshot);
+    .map((ex) => ({
+      nameSnapshot: ex.nameSnapshot,
+      exerciseCatalogKey: ex.exerciseCatalogKey ?? null,
+    }));
 
   return {
     workoutName: session.workoutName ?? "Workout",
@@ -44,7 +47,7 @@ export type ExerciseHistoryEntry = {
 
 export type ExerciseHistoryData = {
   exerciseName: string;
-  pr: { weight: number; reps: number } | null;
+  pr: { weight: number; reps: number; date: string | null } | null;
   sessions: ExerciseHistoryEntry[];
 };
 
@@ -54,7 +57,7 @@ export function deriveExerciseHistory(
   completedSessions: WorkoutSession[],
 ): ExerciseHistoryData {
   const sessions: ExerciseHistoryEntry[] = [];
-  let pr: { weight: number; reps: number } | null = null;
+  let pr: { weight: number; reps: number; date: string } | null = null;
 
   for (const session of completedSessions) {
     const ex = session.exercises.find((e) => e.exerciseId === exerciseId);
@@ -73,11 +76,19 @@ export function deriveExerciseHistory(
     });
 
     for (const s of completedSets) {
-      if (!pr || s.weight > pr.weight || (s.weight === pr.weight && s.reps > pr.reps)) {
-        pr = { weight: s.weight, reps: s.reps };
+      if (
+        !pr ||
+        s.weight > pr.weight ||
+        (s.weight === pr.weight && s.reps > pr.reps)
+      ) {
+        pr = { weight: s.weight, reps: s.reps, date: session.startedAt };
       }
     }
   }
 
-  return { exerciseName, pr, sessions };
+  return {
+    exerciseName,
+    pr: pr ? { weight: pr.weight, reps: pr.reps, date: pr.date } : null,
+    sessions,
+  };
 }

@@ -21,6 +21,7 @@ export type Equipment =
 export type Exercise = {
   id: string;
   name: string;
+  catalogKey?: string | null;
   muscleGroup: MuscleGroup | null;
   equipment: Equipment | null;
   isSystem: boolean;
@@ -49,12 +50,14 @@ export type SessionSet = {
   weight: number;
   completed: boolean;
   createdAt: string;
+  syncedToBackend?: boolean;
 };
 
 export type SessionExercise = {
   id: string;
   exerciseId: string;
   nameSnapshot: string;
+  exerciseCatalogKey?: string | null;
   plannedSets: number | null;
   plannedReps: string | null;
   order: number;
@@ -72,6 +75,7 @@ export type WorkoutSession = {
   startedAt: string;
   finishedAt: string | null;
   exercises: SessionExercise[];
+  backendSynced?: boolean;
 };
 
 export type WeekDay = {
@@ -83,6 +87,30 @@ export type WeeklyProgress = {
   days: WeekDay[];
   totalCompleted: number;
   totalPlanned: number;
+};
+
+export type MonthTrainingIntensity = "none" | "single" | "multi";
+
+export type MonthTrainingCell = {
+  inCurrentMonth: boolean;
+  isToday: boolean;
+  intensity: MonthTrainingIntensity;
+};
+
+export type MonthTrainingGridModel = {
+  cells: MonthTrainingCell[];
+  rowCount: number;
+  weekdayLabels: string[];
+};
+
+export type MonthProgressBlock = {
+  grid: MonthTrainingGridModel;
+  label: string;
+};
+
+export type HomeTrainingProgress = {
+  week: WeeklyProgress;
+  months: MonthProgressBlock[];
 };
 
 export type LastWorkoutSummary = {
@@ -101,19 +129,15 @@ export type TodayWorkout = {
   estimatedMinutes: number;
 };
 
+export type CompletedExerciseSummary = {
+  nameSnapshot: string;
+  exerciseCatalogKey?: string | null;
+};
+
 export type WorkoutSessionSummary = {
   workoutName: string;
   totalSets: number;
   totalVolume: number;
   durationMinutes: number;
-  completedExercises: string[];
-};
-
-export type ExerciseHistory = {
-  exercise: Exercise;
-  pr: { weight: number; reps: number; date: string };
-  sessions: {
-    date: string;
-    sets: { setNumber: number; weight: number; reps: number }[];
-  }[];
+  completedExercises: CompletedExerciseSummary[];
 };

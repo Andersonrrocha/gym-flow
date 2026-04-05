@@ -1,6 +1,8 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { resolveExerciseDisplayName } from "@/lib/exercise-display-name";
 import type { SessionExercise } from "@/types/workouts";
 import { SetRow } from "./set-row";
 
@@ -23,6 +25,12 @@ export function ExerciseRow({
   onAddSet,
   className,
 }: ExerciseRowProps) {
+  const tCatalog = useTranslations("Exercises.catalog");
+  const displayName = resolveExerciseDisplayName(
+    tCatalog,
+    exercise.exerciseCatalogKey,
+    exercise.nameSnapshot,
+  );
   const completedSets = exercise.sets.filter((s) => s.completed).length;
   const totalSets = exercise.sets.length;
 
@@ -38,7 +46,7 @@ export function ExerciseRow({
     >
       <div className="mb-2 flex items-center justify-between">
         <h3 className="text-sm font-bold tracking-tight text-foreground">
-          {exercise.nameSnapshot}
+          {displayName}
         </h3>
         <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
           {completedSets}/{totalSets}

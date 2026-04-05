@@ -4,6 +4,7 @@ export const REGISTER_MUTATION = gql`
   mutation Register($input: AuthInput!) {
     register(input: $input) {
       success
+      accessToken
     }
   }
 `;
@@ -16,5 +17,6 @@ export type RegisterInput = {
 export type RegisterResponse = {
   register: {
     success: boolean;
+    accessToken?: string | null;
   };
 };

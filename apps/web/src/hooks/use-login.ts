@@ -8,6 +8,7 @@ import {
   type LoginInput,
   type LoginResponse,
 } from "@/graphql/auth/login.mutation";
+import { persistAuthSession } from "@/lib/auth-session";
 
 export function useLogin() {
   const router = useRouter();
@@ -20,7 +21,8 @@ export function useLogin() {
   async function login(input: LoginInput) {
     const { data } = await loginMutation({ variables: { input } });
 
-    if (data?.login.success) {
+    if (data?.login.success && data.login.accessToken) {
+      persistAuthSession(data.login.accessToken);
       router.push(`/${locale}/workouts`);
     }
   }

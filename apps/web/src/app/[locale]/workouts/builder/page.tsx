@@ -2,84 +2,83 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
-import { SectionHeader } from "@/components/workouts/section-header";
-import { WorkoutBuilderItem } from "@/components/workouts/workout-builder-item";
-import { PrimaryButton } from "@/components/workouts/primary-button";
-import { workoutBuilderMock } from "@/mocks/workouts";
-import type { Workout } from "@/types/workouts";
+import { useApolloClient } from "@apollo/client/react";
+import { createWorkoutApi } from "@/lib/api/workout-api";
+import { PageHeader } from "@/components/navigation/PageHeader";
 
-export default function BuilderPage() {
+export default function BuilderCreatePage() {
   const t = useTranslations("WorkoutBuilder");
+  const locale = useLocale();
   const router = useRouter();
-  const [workout, setWorkout] = useState<Workout>(workoutBuilderMock);
+  const client = useApolloClient();
 
-  const handleRemove = (id: string) => {
-    setWorkout((prev) => ({
-      ...prev,
-      exercises: prev.exercises
-        .filter((e) => e.id !== id)
-        .map((e, idx) => ({ ...e, order: idx + 1 })),
-    }));
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleCreate = async () => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const workout = await createWorkoutApi(client, trimmed);
+      if (!workout) {
+        setError(t("createError"));
+        return;
+      }
+      router.push(`/${locale}/workouts/builder/${workout.id}`);
+    } catch {
+      setError(t("createError"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") handleCreate();
   };
 
   return (
-    <main className="min-h-dvh bg-background">
-      <div className="mx-auto max-w-lg px-4 py-6 pb-28">
-        <button
-          onClick={() => router.back()}
-          className="mb-4 text-xs font-medium text-primary hover:underline"
-        >
-          ← Back
-        </button>
+    <main className="flex min-h-0 min-w-0 w-full flex-1 flex-col bg-background">
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-3 py-6 sm:px-4 lg:max-w-3xl">
+        <PageHeader href="/workouts" title={t("createTitle")} className="mb-3" />
 
-        <h1 className="text-xl font-bold tracking-tight text-foreground">
-          {t("title")}
-        </h1>
-
-        {/* Workout name */}
-        <input
-          type="text"
-          value={workout.name}
-          onChange={(e) =>
-            setWorkout((prev) => ({ ...prev, name: e.target.value }))
-          }
-          placeholder={t("namePlaceholder")}
-          className="mt-4 w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm font-medium text-foreground placeholder:text-muted-foreground outline-none focus:border-primary"
-        />
-
-        {/* Exercise list */}
-        <div className="mt-5">
-          <SectionHeader title={`${workout.exercises.length} exercises`} />
-          <div className="mt-2 flex flex-col gap-2">
-            {workout.exercises.length === 0 ? (
-              <p className="py-6 text-center text-sm text-muted-foreground">
-                {t("emptyList")}
-              </p>
-            ) : (
-              workout.exercises.map((item) => (
-                <WorkoutBuilderItem
-                  key={item.id}
-                  item={item}
-                  onRemove={handleRemove}
-                />
-              ))
-            )}
+        <div className="mt-6 flex flex-col gap-4">
+          <div>
+            <label
+              htmlFor="workout-name"
+              className="mb-1.5 block text-sm font-medium text-foreground"
+            >
+              {t("nameLabel")}
+            </label>
+            <input
+              id="workout-name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={t("namePlaceholder")}
+              className="w-full rounded-lg border border-border bg-card px-3 py-2.5 text-base font-medium text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-colors"
+              maxLength={100}
+              autoFocus
+            />
           </div>
-        </div>
 
-        {/* Add exercise button */}
-        <button className="mt-3 text-xs font-medium text-primary hover:underline">
-          {t("addExercise")}
-        </button>
+          {error && (
+            <p className="text-xs text-destructive">{error}</p>
+          )}
 
-        {/* Save */}
-        <div className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom))] left-0 right-0 border-t border-border bg-background/80 px-4 py-3 backdrop-blur-md lg:bottom-0">
-          <div className="mx-auto max-w-lg">
-            <PrimaryButton size="lg" className="w-full">
-              {t("save")}
-            </PrimaryButton>
-          </div>
+          <button
+            onClick={handleCreate}
+            disabled={loading || !name.trim()}
+            className="w-full rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
+          >
+            {loading ? t("creating") : t("createButton")}
+          </button>
         </div>
       </div>
     </main>

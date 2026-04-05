@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -14,6 +19,7 @@
   --primary-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
+  --ring-offset-background: #ffffff;
 }
 
 .dark {
@@ -34,6 +40,7 @@
   --accent-foreground: #0a0a0a;
   --success: #22c55e;
   --success-foreground: #ffffff;
+  --ring-offset-background: #0a0a0a;
 }
 
 @theme inline {
@@ -54,6 +61,7 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+  --color-ring-offset-background: var(--ring-offset-background);
 }
 
 body {

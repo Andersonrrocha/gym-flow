@@ -1,3 +1,4 @@
+import { LightningIcon } from "@/components/ui/icons/lightning";
 import { cn } from "@/lib/utils";
 
 type TrainingStreakProps = {
@@ -18,7 +19,9 @@ export function TrainingStreak({
         className,
       )}
     >
-      <span className="text-lg">🔥</span>
+      <span className="inline-flex text-primary opacity-90">
+        <LightningIcon size={16} />
+      </span>
       <div className="flex items-baseline gap-1">
         <span className="font-mono text-sm font-bold tabular-nums text-foreground">
           {count}

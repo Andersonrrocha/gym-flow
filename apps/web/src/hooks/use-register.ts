@@ -8,6 +8,7 @@ import {
   type RegisterInput,
   type RegisterResponse,
 } from "@/graphql/auth/register.mutation";
+import { persistAuthSession } from "@/lib/auth-session";
 
 export function useRegister() {
   const router = useRouter();
@@ -20,7 +21,8 @@ export function useRegister() {
   async function register(input: RegisterInput) {
     const { data } = await registerMutation({ variables: { input } });
 
-    if (data?.register.success) {
+    if (data?.register.success && data.register.accessToken) {
+      persistAuthSession(data.register.accessToken);
       router.push(`/${locale}/workouts`);
     }
   }

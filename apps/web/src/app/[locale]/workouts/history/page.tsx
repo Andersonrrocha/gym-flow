@@ -1,5 +1,6 @@
 "use client";
 
+import { useApolloClient } from "@apollo/client/react";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -7,26 +8,47 @@ import { useState, useEffect } from "react";
 import { formatRelativeDate } from "@/lib/date-format";
 import { getWorkoutSessions } from "@/lib/session-storage";
 import { computeSessionMetrics } from "@/lib/workout-metrics";
+import {
+  listUserSessionsApi,
+  mergeRemoteAndLocalSessions,
+} from "@/lib/api/session-api";
+import { PageHeader } from "@/components/navigation/PageHeader";
 import type { WorkoutSession } from "@/types/workouts";
 
 export default function WorkoutHistoryPage() {
   const t = useTranslations("WorkoutHistory");
   const locale = useLocale();
   const router = useRouter();
+  const client = useApolloClient();
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setSessions(getWorkoutSessions());
-  }, []);
+    let cancelled = false;
+    void (async () => {
+      const remote = await listUserSessionsApi(client, "COMPLETED");
+      const local = getWorkoutSessions();
+      const merged = mergeRemoteAndLocalSessions(remote, local);
+      if (!cancelled) {
+        setSessions(merged);
+        setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [client]);
 
   return (
-    <main className="min-h-dvh bg-background">
-      <div className="mx-auto max-w-5xl px-4 py-6">
-        <h1 className="text-xl font-bold tracking-tight text-foreground">
-          {t("title")}
-        </h1>
+    <main className="flex min-h-0 flex-1 flex-col bg-background">
+      <div className="mx-auto w-full max-w-5xl px-2 py-6 sm:px-4">
+        <PageHeader href="/workouts" title={t("title")} className="mb-4" />
 
-        {sessions.length === 0 ? (
+        {loading ? (
+          <p className="mt-8 text-center text-sm text-muted-foreground">
+            {t("loading")}
+          </p>
+        ) : sessions.length === 0 ? (
           <p className="mt-8 text-center text-sm text-muted-foreground">
             {t("empty")}
           </p>
