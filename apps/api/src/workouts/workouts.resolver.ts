@@ -5,6 +5,11 @@ import { AddExerciseToWorkoutInput } from './dto/add-exercise-to-workout.input';
 import { AssignWorkoutToWeekdayInput } from './dto/assign-workout-to-weekday.input';
 import { CreateWorkoutInput } from './dto/create-workout.input';
 import { GetWorkoutDetailsInput } from './dto/get-workout-details.input';
+import { ReorderWorkoutExercisesInput } from './dto/reorder-workout-exercises.input';
+import { RemoveWorkoutExerciseInput } from './dto/remove-workout-exercise.input';
+import { UpdateWorkoutExerciseInput } from './dto/update-workout-exercise.input';
+import { UpdateWorkoutInput } from './dto/update-workout.input';
+import { DeleteWorkoutInput } from './dto/delete-workout.input';
 import { WorkoutScheduleType } from './dto/workout-schedule.type';
 import { WorkoutType } from './dto/workout.type';
 import { WorkoutsService } from './workouts.service';
@@ -48,6 +53,46 @@ export class WorkoutsResolver {
     @Args('input') input: GetWorkoutDetailsInput,
   ) {
     return this.workoutsService.getWorkoutDetails(req.user.userId, input);
+  }
+
+  @Mutation(() => WorkoutType)
+  updateWorkout(
+    @Context('req') req: AuthenticatedRequest,
+    @Args('input') input: UpdateWorkoutInput,
+  ) {
+    return this.workoutsService.updateWorkout(req.user.userId, input);
+  }
+
+  @Mutation(() => Boolean)
+  deleteWorkout(
+    @Context('req') req: AuthenticatedRequest,
+    @Args('input') input: DeleteWorkoutInput,
+  ) {
+    return this.workoutsService.deleteWorkout(req.user.userId, input);
+  }
+
+  @Mutation(() => WorkoutType)
+  removeWorkoutExercise(
+    @Context('req') req: AuthenticatedRequest,
+    @Args('input') input: RemoveWorkoutExerciseInput,
+  ) {
+    return this.workoutsService.removeWorkoutExercise(req.user.userId, input);
+  }
+
+  @Mutation(() => WorkoutType)
+  updateWorkoutExercise(
+    @Context('req') req: AuthenticatedRequest,
+    @Args('input') input: UpdateWorkoutExerciseInput,
+  ) {
+    return this.workoutsService.updateWorkoutExercise(req.user.userId, input);
+  }
+
+  @Mutation(() => WorkoutType)
+  reorderWorkoutExercises(
+    @Context('req') req: AuthenticatedRequest,
+    @Args('input') input: ReorderWorkoutExercisesInput,
+  ) {
+    return this.workoutsService.reorderWorkoutExercises(req.user.userId, input);
   }
 
   @Mutation(() => WorkoutScheduleType)

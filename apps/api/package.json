@@ -11,12 +11,15 @@
     "db:migrate:prod": "APP_ENV=prod prisma migrate deploy",
     "db:push:dev": "APP_ENV=dev prisma db push",
     "db:push:prod": "APP_ENV=prod prisma db push",
+    "db:seed": "prisma db seed",
+    "db:sanity": "tsx scripts/db-sanity.ts",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "lint:check": "eslint \"src/**/*.ts\" --max-warnings 0",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -71,7 +74,8 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0"
+    "typescript-eslint": "^8.20.0",
+    "tsx": "^4.19.4"
   },
   "jest": {
     "moduleFileExtensions": [

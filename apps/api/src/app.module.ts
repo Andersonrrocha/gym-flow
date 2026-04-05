@@ -8,6 +8,9 @@ import { ExercisesModule } from './exercises/exercises.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { WorkoutsModule } from './workouts/workouts.module';
+import { HealthController } from './health.controller';
+
+const isProd = process.env.NODE_ENV === 'production';
 
 @Module({
   imports: [
@@ -19,13 +22,15 @@ import { WorkoutsModule } from './workouts/workouts.module';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
-      playground: true,
+      playground: !isProd,
+      introspection: !isProd,
       context: ({ req, res }: { req: Request; res: Response }) => ({
         req,
         res,
       }),
     }),
   ],
+  controllers: [HealthController],
   providers: [AppResolver],
 })
 export class AppModule {}

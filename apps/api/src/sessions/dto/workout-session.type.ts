@@ -12,6 +12,9 @@ export class WorkoutSessionType {
   @Field({ nullable: true })
   workoutId?: string;
 
+  @Field({ nullable: true })
+  workoutName?: string;
+
   @Field()
   status: string;
 

@@ -22,6 +22,8 @@ model User {
 model Exercise {
   id                String            @id @default(uuid())
   name              String
+  /** Chave estável para i18n (ex.: bench_press). Só exercícios de sistema; utilizadores usam só `name`. */
+  catalogKey        String?           @unique
   muscleGroup       String?
   equipment         String?
   isSystem          Boolean           @default(true)

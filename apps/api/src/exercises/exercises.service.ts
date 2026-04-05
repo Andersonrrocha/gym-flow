@@ -9,24 +9,36 @@ export class ExercisesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async searchExercises(userId: string, input?: SearchExercisesInput) {
-    const where: Prisma.ExerciseWhereInput = {
-      OR: [{ isSystem: true }, { createdByUserId: userId }],
-    };
+    const andParts: Prisma.ExerciseWhereInput[] = [
+      { OR: [{ isSystem: true }, { createdByUserId: userId }] },
+    ];
 
-    if (input?.query) {
-      where.name = { contains: input.query, mode: 'insensitive' };
+    if (input?.query?.trim()) {
+      andParts.push({
+        name: { contains: input.query.trim(), mode: 'insensitive' },
+      });
     }
 
-    if (input?.muscleGroup) {
-      where.muscleGroup = input.muscleGroup;
+    if (input?.muscleGroup?.trim()) {
+      andParts.push({
+        muscleGroup: {
+          equals: input.muscleGroup.trim(),
+          mode: 'insensitive',
+        },
+      });
     }
 
-    if (input?.equipment) {
-      where.equipment = input.equipment;
+    if (input?.equipment?.trim()) {
+      andParts.push({
+        equipment: {
+          equals: input.equipment.trim(),
+          mode: 'insensitive',
+        },
+      });
     }
 
     return this.prisma.exercise.findMany({
-      where,
+      where: { AND: andParts },
       orderBy: [{ isSystem: 'desc' }, { name: 'asc' }],
     });
   }
@@ -35,6 +47,7 @@ export class ExercisesService {
     return this.prisma.exercise.create({
       data: {
         name: input.name.trim(),
+        catalogKey: null,
         muscleGroup: input.muscleGroup?.trim() || null,
         equipment: input.equipment?.trim() || null,
         isSystem: false,

@@ -146,10 +146,66 @@ export class SessionsService {
     return this.getSessionDetails(userId, session.id);
   }
 
+  async getWorkoutSessionForUser(userId: string, sessionId: string) {
+    const session = await this.prisma.workoutSession.findFirst({
+      where: { id: sessionId, userId },
+      include: {
+        workout: { select: { name: true } },
+        sessionItems: {
+          include: {
+            exercise: true,
+            sets: { orderBy: { setNumber: 'asc' } },
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+    if (!session) {
+      return null;
+    }
+    const { workout, ...rest } = session;
+    return {
+      ...rest,
+      workoutName: workout?.name ?? null,
+    };
+  }
+
+  async listUserSessions(
+    userId: string,
+    status?: 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED',
+  ) {
+    const rows = await this.prisma.workoutSession.findMany({
+      where: {
+        userId,
+        ...(status ? { status } : {}),
+      },
+      orderBy: { startedAt: 'desc' },
+      take: 100,
+      include: {
+        workout: { select: { name: true } },
+        sessionItems: {
+          include: {
+            exercise: true,
+            sets: { orderBy: { setNumber: 'asc' } },
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+    return rows.map((s) => {
+      const { workout, ...rest } = s;
+      return {
+        ...rest,
+        workoutName: workout?.name ?? null,
+      };
+    });
+  }
+
   private async getSessionDetails(userId: string, sessionId: string) {
     const session = await this.prisma.workoutSession.findFirst({
       where: { id: sessionId, userId },
       include: {
+        workout: { select: { name: true } },
         sessionItems: {
           include: {
             exercise: true,
@@ -164,7 +220,11 @@ export class SessionsService {
       throw new NotFoundException('Workout session not found');
     }
 
-    return session;
+    const { workout, ...rest } = session;
+    return {
+      ...rest,
+      workoutName: workout?.name ?? null,
+    };
   }
 
   private async ensureActiveSessionOwnership(
@@ -227,6 +287,7 @@ export class SessionsService {
     return this.prisma.exercise.create({
       data: {
         name: normalizedName,
+        catalogKey: null,
         muscleGroup: input.muscleGroup?.trim() || null,
         equipment: input.equipment?.trim() || null,
         isSystem: false,

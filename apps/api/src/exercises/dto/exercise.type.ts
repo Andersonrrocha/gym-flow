@@ -9,6 +9,9 @@ export class ExerciseType {
   name: string;
 
   @Field({ nullable: true })
+  catalogKey?: string;
+
+  @Field({ nullable: true })
   muscleGroup?: string;
 
   @Field({ nullable: true })

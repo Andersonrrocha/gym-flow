@@ -1,5 +1,5 @@
 import { UseGuards } from '@nestjs/common';
-import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Context, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { GqlAuthGuard } from '../auth/guards/gql-auth.guard';
 import { AddExerciseToSessionInput } from './dto/add-exercise-to-session.input';
 import { FinishWorkoutSessionInput } from './dto/finish-workout-session.input';
@@ -20,6 +20,24 @@ type AuthenticatedRequest = {
 @UseGuards(GqlAuthGuard)
 export class SessionsResolver {
   constructor(private readonly sessionsService: SessionsService) {}
+
+  @Query(() => [WorkoutSessionType])
+  listUserSessions(
+    @Context('req') req: AuthenticatedRequest,
+    @Args('status', { nullable: true, type: () => String }) status?: string,
+  ) {
+    const allowed = ['IN_PROGRESS', 'COMPLETED', 'CANCELLED'] as const;
+    const normalized = allowed.find((s) => s === status);
+    return this.sessionsService.listUserSessions(req.user.userId, normalized);
+  }
+
+  @Query(() => WorkoutSessionType, { nullable: true })
+  workoutSession(
+    @Context('req') req: AuthenticatedRequest,
+    @Args('id', { type: () => ID }) id: string,
+  ) {
+    return this.sessionsService.getWorkoutSessionForUser(req.user.userId, id);
+  }
 
   @Mutation(() => WorkoutSessionType)
   startSessionFromWorkout(
