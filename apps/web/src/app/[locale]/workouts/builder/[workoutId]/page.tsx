@@ -339,7 +339,11 @@ function BuilderEditPageContent({ workoutId }: { workoutId: string }) {
     return (
       <main className="flex min-h-0 min-w-0 w-full flex-1 flex-col bg-background">
         <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-3 py-5 sm:px-4 lg:max-w-3xl">
-          <PageHeader href="/workouts" title={t("editTitle")} className="mb-3" />
+          <PageHeader
+            href="/workouts"
+            title={t("editTitle")}
+            className="mb-3"
+          />
           <p className="text-sm text-destructive">{t("saveError")}</p>
         </div>
       </main>
