@@ -1,3 +1,7 @@
+# Production deploys: trigger Vercel + Render via deploy hooks only (see secrets below).
+# Disable Git auto-deploy on both platforms so pushes to main do not deploy; publish a
+# GitHub Release to run this workflow (prereleases skip migrate + deploy hooks).
+
 name: Release deploy
 
 on:
