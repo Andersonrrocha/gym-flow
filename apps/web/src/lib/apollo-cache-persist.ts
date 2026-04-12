@@ -21,6 +21,10 @@ export async function restoreCache(cache: InMemoryCache): Promise<void> {
 }
 
 export function startCachePersist(cache: InMemoryCache): () => void {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
   const persist = () => {
     store.setItem(CACHE_KEY, cache.extract()).catch(() => {});
   };
