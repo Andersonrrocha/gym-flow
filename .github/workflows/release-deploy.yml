@@ -1,12 +1,18 @@
 # Production deploys: trigger Vercel + Render via deploy hooks only (see secrets below).
 # Disable Git auto-deploy on both platforms so pushes to main do not deploy; publish a
 # GitHub Release to run this workflow (prereleases skip migrate + deploy hooks).
+# After a successful production deploy, package.json versions are synced to the release tag
+# and committed to the default branch (requires "Allow GitHub Actions to create and approve
+# pull requests" or equivalent if branch protection blocks the bot).
 
 name: Release deploy
 
 on:
   release:
     types: [published]
+
+permissions:
+  contents: read
 
 concurrency:
   group: release-deploy-${{ github.event.release.tag_name }}
@@ -73,3 +79,49 @@ jobs:
         env:
           HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: curl -fsS -X POST "$HOOK"
+
+  sync-version:
+    needs: deploy
+    if: ${{ !github.event.release.prerelease && success() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derive version from tag
+        id: tag
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          VERSION="${TAG#v}"
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$'; then
+            echo "Tag must be semver (e.g. v1.2.3), got: $TAG"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Sync package.json versions
+        run: node scripts/sync-package-versions.mjs "${{ steps.tag.outputs.version }}"
+
+      - name: Commit and push
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json apps/web/package.json apps/api/package.json
+          if git diff --staged --quiet; then
+            echo "Version already matches release; nothing to commit."
+            exit 0
+          fi
+          git commit -m "chore(release): ${VERSION}"
+          git push

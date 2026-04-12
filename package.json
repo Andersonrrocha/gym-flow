@@ -1,5 +1,6 @@
 {
   "name": "gymflow",
+  "version": "0.1.0",
   "private": true,
   "license": "MIT",
   "packageManager": "pnpm@10.30.3",
@@ -17,7 +18,8 @@
     "build:mvp": "pnpm --filter @gymflow/web run build && pnpm --filter @gymflow/api run build",
     "prisma:validate:mvp": "sh -c 'cd apps/api && DATABASE_URL=\"${DATABASE_URL:-postgresql://127.0.0.1:5432/_prisma_validate}\" pnpm exec prisma validate'",
     "validate:mvp": "pnpm lint:mvp && pnpm typecheck:mvp && pnpm test:mvp && pnpm build:mvp && pnpm prisma:validate:mvp && pnpm --filter @gymflow/api run db:sanity",
-    "validate:mvp:no-db": "pnpm lint:mvp && pnpm typecheck:mvp && pnpm test:mvp && pnpm build:mvp && pnpm prisma:validate:mvp"
+    "validate:mvp:no-db": "pnpm lint:mvp && pnpm typecheck:mvp && pnpm test:mvp && pnpm build:mvp && pnpm prisma:validate:mvp",
+    "sync-version": "node scripts/sync-package-versions.mjs"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
