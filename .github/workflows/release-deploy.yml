@@ -36,6 +36,13 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # ESLint (type-aware) needs generated Prisma Client; pnpm install does not run prisma generate.
+      - name: Generate Prisma Client
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgresql://127.0.0.1:5432/_prisma_generate
+        run: pnpm exec prisma generate
+
       - name: Validate MVP (no DB)
         run: pnpm validate:mvp:no-db
 
