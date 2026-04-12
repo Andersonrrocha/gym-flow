@@ -8,6 +8,7 @@ import {
   type LogoutResponse,
 } from "@/graphql/auth/logout.mutation";
 import { clearAuthSession } from "@/lib/auth-session";
+import { purgePersistedCache } from "@/lib/apollo-cache-persist";
 
 export function useLogout() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export function useLogout() {
     } catch {
     } finally {
       clearAuthSession();
+      purgePersistedCache().catch(() => {});
       router.replace(`/${locale}/login`);
     }
   }

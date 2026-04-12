@@ -42,17 +42,32 @@ export async function searchExercisesApi(
   client: ApolloClient,
   input?: SearchExercisesInput,
 ): Promise<Exercise[]> {
+  const variables = { input: input ?? null };
   try {
     const { data } = await client.query<{
       searchExercises: GqlExercise[];
     }>({
       query: SEARCH_EXERCISES,
-      variables: { input: input ?? null },
+      variables,
       fetchPolicy: "network-only",
     });
     return (data?.searchExercises ?? []).map(mapGqlExerciseToUi);
   } catch (e) {
-    logExerciseDebug("searchExercises failed", e);
+    logExerciseDebug("searchExercises network failed, trying cache", e);
+    try {
+      const { data } = await client.query<{
+        searchExercises: GqlExercise[];
+      }>({
+        query: SEARCH_EXERCISES,
+        variables,
+        fetchPolicy: "cache-only",
+      });
+      if (data?.searchExercises?.length) {
+        return data.searchExercises.map(mapGqlExerciseToUi);
+      }
+    } catch {
+      /* cache miss — fall through */
+    }
     return [];
   }
 }
@@ -73,6 +88,10 @@ export async function createExerciseApi(
     }>({
       mutation: CREATE_EXERCISE,
       variables: { input },
+      update(cache) {
+        cache.evict({ fieldName: "searchExercises" });
+        cache.gc();
+      },
     });
     if (!data?.createExercise) return null;
     return mapGqlExerciseToUi(data.createExercise);
