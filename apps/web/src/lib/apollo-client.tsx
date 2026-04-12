@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useEffect } from "react";
 import { HttpLink } from "@apollo/client";
 import { SetContextLink } from "@apollo/client/link/context";
 import { ErrorLink } from "@apollo/client/link/error";
@@ -15,6 +16,11 @@ import {
   clearAuthSession,
 } from "@/lib/auth-session";
 import { refreshAccessToken } from "@/lib/refresh-access-token";
+import {
+  restoreCache,
+  startCachePersist,
+  purgePersistedCache,
+} from "@/lib/apollo-cache-persist";
 
 function redirectToLogin(): void {
   if (typeof window === "undefined") return;
@@ -24,6 +30,7 @@ function redirectToLogin(): void {
 
 function forceLogout(): void {
   clearAuthSession();
+  purgePersistedCache().catch(() => {});
   fetch(
     process.env.NEXT_PUBLIC_API_GRAPHQL_URL ?? "http://localhost:3001/graphql",
     {
@@ -100,15 +107,39 @@ function makeClient() {
     });
   });
 
-  return new ApolloClient({
-    cache: new InMemoryCache(),
+  const cache = new InMemoryCache();
+
+  const client = new ApolloClient({
+    cache,
     link: errorLink.concat(authLink).concat(httpLink),
   });
+
+  if (typeof window !== "undefined") {
+    restoreCache(cache).catch(() => {});
+  }
+
+  return client;
 }
 
 export function ApolloWrapper({ children }: React.PropsWithChildren) {
+  const teardownRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    return () => {
+      teardownRef.current?.();
+    };
+  }, []);
+
   return (
-    <ApolloNextAppProvider makeClient={makeClient}>
+    <ApolloNextAppProvider
+      makeClient={() => {
+        const client = makeClient();
+        teardownRef.current = startCachePersist(
+          client.cache as InMemoryCache,
+        );
+        return client;
+      }}
+    >
       {children}
     </ApolloNextAppProvider>
   );
