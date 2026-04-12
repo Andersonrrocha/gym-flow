@@ -9,6 +9,7 @@ import {
   createSignupSchema,
   getPasswordRuleState,
 } from "@/lib/validation/auth";
+import { PasswordInput } from "@/components/ui/password-input";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 
@@ -91,14 +92,14 @@ export function SignupForm() {
         >
           {t("passwordLabel")}
         </label>
-        <input
+        <PasswordInput
           id="password"
-          type="password"
           autoComplete="new-password"
           placeholder={t("passwordPlaceholder")}
+          showPasswordLabel={t("showPassword")}
+          hidePasswordLabel={t("hidePassword")}
           {...register("password")}
           disabled={loading || isSubmitting}
-          className="h-12 rounded-lg border border-input bg-muted px-4 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
         {errors.password?.message && (
           <p className="text-sm text-destructive" role="alert">
@@ -161,14 +162,14 @@ export function SignupForm() {
         >
           {t("confirmPasswordLabel")}
         </label>
-        <input
+        <PasswordInput
           id="confirmPassword"
-          type="password"
           autoComplete="new-password"
           placeholder={t("confirmPasswordPlaceholder")}
+          showPasswordLabel={t("showPassword")}
+          hidePasswordLabel={t("hidePassword")}
           {...register("confirmPassword")}
           disabled={loading || isSubmitting}
-          className="h-12 rounded-lg border border-input bg-muted px-4 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
         {errors.confirmPassword?.message && (
           <p className="text-sm text-destructive" role="alert">

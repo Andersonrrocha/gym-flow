@@ -5,17 +5,17 @@ import { useApolloClient } from "@apollo/client/react";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
+import {
+  Clock,
+  LogOut,
+  Pencil,
+  Play,
+  Plus,
+} from "lucide-react";
 import { useLogout } from "@/hooks/use-logout";
 import { SectionHeader } from "@/components/workouts/section-header";
 import { TrainingStreak } from "@/components/workouts/training-streak";
 import { TrainingProgressSection } from "@/components/workouts/training-progress-section";
-import {
-  PlayIcon,
-  PlusIcon,
-  PencilIcon,
-  ClockIcon,
-  LogoutIcon,
-} from "@/components/workouts/dashboard-action-icons";
 import { StatItem } from "@/components/stats/StatItem";
 import {
   saveActiveSession,
@@ -202,7 +202,7 @@ export default function WorkoutsPage() {
               title={t("logout")}
               className="rounded-lg p-2 text-primary opacity-90 transition-colors hover:bg-primary/10 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              <LogoutIcon />
+              <LogOut className="size-5" strokeWidth={2} aria-hidden />
             </button>
           </div>
         </div>
@@ -215,7 +215,7 @@ export default function WorkoutsPage() {
                 onClick={() => router.push(`/${locale}/workouts/active`)}
                 className="flex w-full items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 text-left transition-colors hover:bg-primary/10"
               >
-                <PlayIcon className="shrink-0 text-primary" />
+                <Play className="size-4 shrink-0 text-primary" aria-hidden />
                 <span className="min-w-0 flex-1 text-sm font-semibold text-primary">
                   {t("resumeWorkout")}
                 </span>
@@ -233,7 +233,11 @@ export default function WorkoutsPage() {
                     aria-label={t("createWorkout")}
                     title={t("createWorkout")}
                   >
-                    <PlusIcon className="shrink-0" />
+                    <Plus
+                      className="size-4 shrink-0"
+                      strokeWidth={2.5}
+                      aria-hidden
+                    />
                     <span className="hidden text-xs font-medium sm:inline">
                       {t("createWorkout")}
                     </span>
@@ -307,7 +311,7 @@ export default function WorkoutsPage() {
                             aria-label={t("edit")}
                             title={t("edit")}
                           >
-                            <PencilIcon />
+                            <Pencil className="size-4" strokeWidth={2} aria-hidden />
                           </button>
                           <button
                             type="button"
@@ -315,7 +319,10 @@ export default function WorkoutsPage() {
                             disabled={startingId !== null}
                             className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
                           >
-                            <PlayIcon className="shrink-0 text-primary-foreground" />
+                            <Play
+                              className="size-4 shrink-0 text-primary-foreground"
+                              aria-hidden
+                            />
                             <span>
                               {startingId === workout.id
                                 ? t("starting")
@@ -376,7 +383,7 @@ export default function WorkoutsPage() {
                     aria-label={t("sessionHistory")}
                     title={t("sessionHistory")}
                   >
-                    <ClockIcon className="size-3.5 shrink-0" />
+                    <Clock className="size-3.5 shrink-0" strokeWidth={2} aria-hidden />
                     <span className="min-w-0 truncate leading-tight">
                       {t("sessionHistory")}
                     </span>

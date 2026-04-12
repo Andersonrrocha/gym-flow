@@ -1,4 +1,4 @@
-import { LightningIcon } from "@/components/ui/icons/lightning";
+import { Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type TrainingStreakProps = {
@@ -20,7 +20,7 @@ export function TrainingStreak({
       )}
     >
       <span className="inline-flex text-primary opacity-90">
-        <LightningIcon size={16} />
+        <Zap className="size-4" aria-hidden />
       </span>
       <div className="flex items-baseline gap-1">
         <span className="font-mono text-sm font-bold tabular-nums text-foreground">

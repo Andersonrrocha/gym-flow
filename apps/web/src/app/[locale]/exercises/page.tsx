@@ -5,7 +5,7 @@ import { useApolloClient } from "@apollo/client/react";
 import { useTranslations } from "next-intl";
 import { ExerciseFilterChips } from "@/components/workouts/exercise-filter-chips";
 import { CreateExerciseModal } from "@/components/exercises/CreateExerciseModal";
-import { PlusIcon } from "@/components/workouts/dashboard-action-icons";
+import { Plus } from "lucide-react";
 import { searchExercisesApi, createExerciseApi } from "@/lib/api/exercise-api";
 import { applyExerciseListFilters } from "@/lib/exercise-filters";
 import { resolveExerciseDisplayName } from "@/lib/exercise-display-name";
@@ -98,7 +98,7 @@ export default function ExercisesPage() {
             aria-label={t("newExercise")}
             className="inline-flex items-center gap-1.5 rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.97]"
           >
-            <PlusIcon />
+            <Plus className="size-4" strokeWidth={2.5} aria-hidden />
             <span>{t("newExerciseShort")}</span>
           </button>
         </div>

@@ -5,7 +5,14 @@ html {
   text-size-adjust: 100%;
 }
 
+/*
+ * Safe areas: in the browser, chrome adds visual margin; in installed PWA (standalone)
+ * content can feel glued to the top while the bottom safe area feels oversized.
+ * These vars tune insets only when display-mode is standalone (or fullscreen).
+ */
 :root {
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
   --background: #ffffff;
   --foreground: #171717;
   --card: #ffffff;
@@ -41,6 +48,16 @@ html {
   --success: #22c55e;
   --success-foreground: #ffffff;
   --ring-offset-background: #0a0a0a;
+}
+
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  :root {
+    --app-safe-top: calc(env(safe-area-inset-top, 0px) + 0.625rem);
+    --app-safe-bottom: max(
+      0px,
+      calc(env(safe-area-inset-bottom, 0px) - 0.5rem)
+    );
+  }
 }
 
 @theme inline {

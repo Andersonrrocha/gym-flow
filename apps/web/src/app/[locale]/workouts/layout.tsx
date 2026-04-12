@@ -12,7 +12,7 @@ export default function WorkoutsLayout({ children }: WorkoutsLayoutProps) {
       <ProactiveRefresh />
       <DesktopSidebar />
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col pt-[env(safe-area-inset-top)] pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0 lg:pt-0">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col pt-[var(--app-safe-top)] pb-[calc(3.5rem+var(--app-safe-bottom))] lg:pb-0 lg:pt-0">
         {children}
       </div>
 

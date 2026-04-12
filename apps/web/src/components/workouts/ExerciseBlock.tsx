@@ -6,7 +6,7 @@ import { resolveExerciseDisplayName } from "@/lib/exercise-display-name";
 import { AnimatePresence, motion } from "motion/react";
 import type { SessionExercise } from "@/types/workouts";
 import { SetRow } from "./set-row";
-import { ClockIcon } from "@/components/workouts/dashboard-action-icons";
+import { Clock } from "lucide-react";
 
 type ExerciseBlockProps = {
   exercise: SessionExercise;
@@ -140,7 +140,7 @@ export function ExerciseBlock({
           aria-label={historyLabel}
           title={historyLabel}
         >
-          <ClockIcon className="size-4" />
+          <Clock className="size-4" strokeWidth={2} aria-hidden />
         </button>
         <span
           className={cn(

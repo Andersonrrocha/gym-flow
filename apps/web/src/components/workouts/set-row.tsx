@@ -1,48 +1,9 @@
 "use client";
 
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
 import type { SessionSet } from "@/types/workouts";
-
-function ChevronUp({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-hidden
-    >
-      <path
-        d="M18 15l-6-6-6 6"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function ChevronDown({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-hidden
-    >
-      <path
-        d="M6 9l6 6 6-6"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 const noSpinnerClass =
   "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
@@ -151,7 +112,11 @@ function NumericStepField({
           )}
           aria-label={ariaIncrease}
         >
-          <ChevronUp className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+          <ChevronUp
+            className="h-3 w-3 sm:h-3.5 sm:w-3.5"
+            strokeWidth={2.2}
+            aria-hidden
+          />
         </button>
         <button
           type="button"
@@ -162,7 +127,11 @@ function NumericStepField({
           )}
           aria-label={ariaDecrease}
         >
-          <ChevronDown className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+          <ChevronDown
+            className="h-3 w-3 sm:h-3.5 sm:w-3.5"
+            strokeWidth={2.2}
+            aria-hidden
+          />
         </button>
       </div>
     </div>

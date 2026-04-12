@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLogin } from "@/hooks/use-login";
 import { createLoginSchema } from "@/lib/validation/auth";
+import { PasswordInput } from "@/components/ui/password-input";
 import { z } from "zod";
 
 export function LoginForm() {
@@ -78,14 +79,14 @@ export function LoginForm() {
         >
           {t("passwordLabel")}
         </label>
-        <input
+        <PasswordInput
           id="password"
-          type="password"
           autoComplete="current-password"
           placeholder={t("passwordPlaceholder")}
+          showPasswordLabel={t("showPassword")}
+          hidePasswordLabel={t("hidePassword")}
           {...register("password")}
           disabled={loading || isSubmitting}
-          className="h-12 rounded-lg border border-input bg-muted px-4 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
         {errors.password?.message && (
           <p className="text-sm text-destructive" role="alert">
