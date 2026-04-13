@@ -17,7 +17,26 @@
     "accountNotFound": "Conta não encontrada.",
     "incorrectPassword": "Senha incorreta.",
     "invalidCredentials": "E-mail ou senha inválidos.",
-    "genericError": "Erro ao fazer login. Tente novamente."
+    "genericError": "Erro ao fazer login. Tente novamente.",
+    "forgotPasswordLink": "Esqueceu a senha?"
+  },
+  "ForgotPassword": {
+    "title": "Redefinir senha",
+    "subtitle": "Informe seu e-mail. Se existir uma conta, enviaremos um link.",
+    "submit": "Enviar link",
+    "successMessage": "Se existir uma conta para este e-mail, você receberá as instruções em breve.",
+    "backToLogin": "Voltar ao login",
+    "genericError": "Não foi possível enviar o e-mail. Tente novamente."
+  },
+  "ResetPassword": {
+    "title": "Nova senha",
+    "subtitle": "Use uma senha forte que você não use em outros sites.",
+    "submit": "Atualizar senha",
+    "successTitle": "Senha atualizada",
+    "successMessage": "Agora você pode entrar com a nova senha.",
+    "signInLink": "Entrar",
+    "invalidOrExpired": "Este link é inválido ou expirou. Solicite outro na página de login.",
+    "genericError": "Não foi possível redefinir a senha. Tente novamente."
   },
   "Signup": {
     "title": "GymFlow",

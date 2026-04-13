@@ -43,6 +43,58 @@ export function createLoginSchema(messages: LoginValidationMessages) {
   });
 }
 
+type ForgotPasswordValidationMessages = {
+  emailRequired: string;
+  emailInvalid: string;
+};
+
+export function createForgotPasswordSchema(messages: ForgotPasswordValidationMessages) {
+  return z.object({
+    email: z
+      .string()
+      .min(1, messages.emailRequired)
+      .email(messages.emailInvalid),
+  });
+}
+
+type ResetPasswordValidationMessages = {
+  passwordRequired: string;
+  passwordRulesError: string;
+  confirmPasswordRequired: string;
+  passwordMismatch: string;
+};
+
+export function createResetPasswordSchema(messages: ResetPasswordValidationMessages) {
+  return z
+    .object({
+      password: z
+        .string()
+        .min(1, messages.passwordRequired)
+        .refine(
+          (value) => {
+            const state = getPasswordRuleState(value);
+            return (
+              state.hasUppercase &&
+              state.hasLowercase &&
+              state.hasNumber &&
+              state.hasSpecial
+            );
+          },
+          { message: messages.passwordRulesError },
+        ),
+      confirmPassword: z.string().min(1, messages.confirmPasswordRequired),
+    })
+    .superRefine((data, ctx) => {
+      if (data.password !== data.confirmPassword) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["confirmPassword"],
+          message: messages.passwordMismatch,
+        });
+      }
+    });
+}
+
 export function createSignupSchema(messages: SignupValidationMessages) {
   return z
     .object({

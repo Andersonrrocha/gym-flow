@@ -17,7 +17,26 @@
     "accountNotFound": "Account not found.",
     "incorrectPassword": "Incorrect password.",
     "invalidCredentials": "Invalid email or password.",
-    "genericError": "Could not sign in. Please try again."
+    "genericError": "Could not sign in. Please try again.",
+    "forgotPasswordLink": "Forgot password?"
+  },
+  "ForgotPassword": {
+    "title": "Reset password",
+    "subtitle": "Enter your email and we will send you a link if an account exists.",
+    "submit": "Send reset link",
+    "successMessage": "If an account exists for this email, you will receive instructions shortly.",
+    "backToLogin": "Back to sign in",
+    "genericError": "Could not send the email. Please try again."
+  },
+  "ResetPassword": {
+    "title": "Choose a new password",
+    "subtitle": "Use a strong password you have not used elsewhere.",
+    "submit": "Update password",
+    "successTitle": "Password updated",
+    "successMessage": "You can now sign in with your new password.",
+    "signInLink": "Sign in",
+    "invalidOrExpired": "This reset link is invalid or has expired. Request a new one from the login page.",
+    "genericError": "Could not reset your password. Please try again."
   },
   "Signup": {
     "title": "GymFlow",

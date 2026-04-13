@@ -93,6 +93,14 @@ export function LoginForm() {
             {errors.password.message}
           </p>
         )}
+        <div className="flex justify-end">
+          <Link
+            href={`/${locale}/forgot-password`}
+            className="text-xs font-medium text-primary hover:underline"
+          >
+            {t("forgotPasswordLink")}
+          </Link>
+        </div>
       </div>
 
       {loginError && (
