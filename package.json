@@ -1,6 +1,6 @@
 {
   "name": "gymflow",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "private": true,
   "license": "MIT",
   "packageManager": "pnpm@10.30.3",
