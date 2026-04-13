@@ -12,7 +12,7 @@ export function BottomNavigation() {
   const t = useTranslations("Navigation");
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/90 pb-[var(--app-safe-bottom)] backdrop-blur-md lg:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/90 pb-(--app-safe-bottom) backdrop-blur-md lg:hidden">
       <div className="mx-auto flex h-14 max-w-lg items-center justify-around px-2">
         {navigationItems.map((item) => {
           const fullHref = `/${locale}${item.href}`;

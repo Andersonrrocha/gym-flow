@@ -336,7 +336,7 @@ export default function ActiveWorkoutPage() {
   };
 
   return (
-    <main className="fixed inset-0 z-0 flex flex-col bg-background pt-[var(--app-safe-top)] lg:relative lg:inset-auto lg:z-auto lg:flex-1 lg:min-h-0 lg:pt-0">
+    <main className="fixed inset-0 z-0 flex flex-col bg-background pt-(--app-safe-top) lg:relative lg:inset-auto lg:z-auto lg:flex-1 lg:min-h-0 lg:pt-0">
       <header className="shrink-0 border-b border-border/50 bg-background">
         <div className="mx-auto w-full max-w-5xl px-2 pb-3 pt-2 sm:px-4">
           <WorkoutHeader
@@ -424,7 +424,7 @@ export default function ActiveWorkoutPage() {
         </div>
       </div>
 
-      <div className="fixed bottom-[calc(3.5rem+var(--app-safe-bottom))] left-0 right-0 z-30 border-t border-border bg-background/80 backdrop-blur-md lg:hidden">
+      <div className="fixed bottom-[calc(3.5rem+(--app-safe-bottom))] left-0 right-0 z-30 border-t border-border bg-background/80 backdrop-blur-md lg:hidden">
         {nextExercise && (
           <div className="border-b border-border/30 px-2 py-2 sm:px-4">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
