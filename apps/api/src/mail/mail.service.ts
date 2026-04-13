@@ -5,10 +5,49 @@ import { Resend } from 'resend';
 
 export type PasswordResetEmailLocale = 'pt' | 'en';
 
+const DEFAULT_MAIL_FROM = 'GymFlow <onboarding@resend.dev>';
+
+/** Strip outer quotes often stored literally in host env UIs. */
+function stripSurroundingQuotes(raw: string): string {
+  let s = raw.trim();
+  if (
+    (s.startsWith('"') && s.endsWith('"')) ||
+    (s.startsWith("'") && s.endsWith("'"))
+  ) {
+    s = s.slice(1, -1).trim();
+  }
+  return s;
+}
+
+/**
+ * Resend requires `from` like `a@b.co` or `Name <a@b.co>`.
+ * Empty MAIL_FROM must fall back (empty string is not nullish for ??).
+ */
+function isPlausibleResendFrom(value: string): boolean {
+  const v = value.trim();
+  if (!v) return false;
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return true;
+  return /^[\s\S]+<\s*[^\s@]+@[^\s@]+\.[^\s@]+\s*>$/.test(v);
+}
+
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
   private resend: Resend | null = null;
+
+  private resolveFromAddress(): string {
+    const rawEnv = process.env.MAIL_FROM;
+    const stripped = rawEnv !== undefined ? stripSurroundingQuotes(rawEnv) : '';
+    if (stripped && isPlausibleResendFrom(stripped)) {
+      return stripped;
+    }
+    if (stripped.length > 0) {
+      this.logger.warn(
+        'MAIL_FROM is invalid for Resend; using default onboarding sender',
+      );
+    }
+    return DEFAULT_MAIL_FROM;
+  }
 
   private getResend(): Resend | null {
     const key = process.env.RESEND_API_KEY?.trim();
@@ -93,8 +132,7 @@ export class MailService {
     locale: PasswordResetEmailLocale = 'en',
   ): Promise<void> {
     const client = this.getResend();
-    const from =
-      process.env.MAIL_FROM?.trim() ?? 'GymFlow <onboarding@resend.dev>';
+    const from = this.resolveFromAddress();
 
     const mailLocale: PasswordResetEmailLocale = locale === 'pt' ? 'pt' : 'en';
     const html = this.renderPasswordResetHtml(mailLocale, resetUrl);
