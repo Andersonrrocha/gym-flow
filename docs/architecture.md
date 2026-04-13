@@ -168,9 +168,10 @@ This allows:
 - custom access/refresh token strategy
 - deeper backend architecture control
 
+**Password reset** is handled in the API: one-time tokens are stored hashed (`PasswordResetToken`), emailed via **Resend** (`RESEND_API_KEY`, `MAIL_FROM`), or logged in development when Resend is not configured. Email HTML uses locale-specific templates (`src/mail/templates/password-reset.pt.html` and `.en.html`) chosen from the same locale segment as the reset link (`pt` / `en`). Optional `EMAIL_LOGO_URL` overrides the default `WEB_URL/logo.png` for the header image.
+
 Future improvements may include:
 
-- refresh tokens
 - token rotation
 - device/session tracking
 

@@ -7,16 +7,28 @@ datasource db {
 }
 
 model User {
-  id               String            @id @default(uuid())
-  email            String            @unique
+  id               String               @id @default(uuid())
+  email            String               @unique
   password         String
   refreshToken     String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  createdExercises Exercise[]        @relation("UserCreatedExercises")
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  createdExercises Exercise[]           @relation("UserCreatedExercises")
   workouts         Workout[]
   workoutSchedules WorkoutSchedule[]
   workoutSessions  WorkoutSession[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Exercise {

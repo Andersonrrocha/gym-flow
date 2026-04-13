@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -6,7 +7,16 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { createHash, randomBytes } from 'node:crypto';
+import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
+
+const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
+
+const HAS_UPPERCASE = /[A-Z]/;
+const HAS_LOWERCASE = /[a-z]/;
+const HAS_NUMBER = /\d/;
+const HAS_SPECIAL = /[^A-Za-z0-9]/;
 
 type AuthTokens = {
   accessToken: string;
@@ -18,6 +28,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
 
   async register(email: string, password: string): Promise<AuthTokens> {
@@ -124,6 +135,95 @@ export class AuthService {
       where: { id: userId },
       data: { refreshToken: null },
     });
+  }
+
+  /**
+   * Creates a one-hour reset token and emails a link (or logs it in development without SMTP).
+   * Always appears to succeed from the client to avoid email enumeration.
+   */
+  async requestPasswordReset(
+    emailRaw: string,
+    localeHint?: string | null,
+  ): Promise<void> {
+    const email = emailRaw.trim().toLowerCase();
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return;
+    }
+
+    await this.prisma.passwordResetToken.deleteMany({
+      where: { userId: user.id },
+    });
+
+    const rawToken = randomBytes(32).toString('hex');
+    const tokenHash = this.hashResetToken(rawToken);
+    const expiresAt = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
+
+    await this.prisma.passwordResetToken.create({
+      data: {
+        userId: user.id,
+        tokenHash,
+        expiresAt,
+      },
+    });
+
+    const baseUrl = (process.env.WEB_URL ?? 'http://localhost:3000').replace(
+      /\/$/,
+      '',
+    );
+    const envDefault = process.env.PASSWORD_RESET_EMAIL_LOCALE ?? 'en';
+    const segment =
+      localeHint === 'pt' || localeHint === 'en' ? localeHint : envDefault;
+    const resetUrl = `${baseUrl}/${segment}/reset-password?token=${encodeURIComponent(rawToken)}`;
+
+    const emailLocale = segment === 'pt' ? 'pt' : 'en';
+    await this.mailService.sendPasswordResetEmail(
+      user.email,
+      resetUrl,
+      emailLocale,
+    );
+  }
+
+  async resetPassword(rawToken: string, newPassword: string): Promise<void> {
+    this.assertStrongPassword(newPassword);
+
+    const tokenHash = this.hashResetToken(rawToken.trim());
+    const record = await this.prisma.passwordResetToken.findUnique({
+      where: { tokenHash },
+      include: { user: true },
+    });
+
+    if (!record || record.expiresAt.getTime() <= Date.now()) {
+      throw new UnauthorizedException('Invalid or expired reset token');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: record.userId },
+        data: {
+          password: passwordHash,
+          refreshToken: null,
+        },
+      }),
+      this.prisma.passwordResetToken.delete({ where: { id: record.id } }),
+    ]);
+  }
+
+  private hashResetToken(raw: string): string {
+    return createHash('sha256').update(raw).digest('hex');
+  }
+
+  private assertStrongPassword(password: string): void {
+    if (
+      !HAS_UPPERCASE.test(password) ||
+      !HAS_LOWERCASE.test(password) ||
+      !HAS_NUMBER.test(password) ||
+      !HAS_SPECIAL.test(password)
+    ) {
+      throw new BadRequestException('Password does not meet complexity rules');
+    }
   }
 
   private async generateTokens(

@@ -4,6 +4,9 @@ import type { Request, Response } from 'express';
 import { GqlAuthGuard } from './guards/gql-auth.guard';
 import { AuthInput } from './dto/auth.input';
 import { AuthResponse } from './dto/auth-response.type';
+import { PasswordResetPayload } from './dto/password-reset-payload.type';
+import { RequestPasswordResetInput } from './dto/request-password-reset.input';
+import { ResetPasswordInput } from './dto/reset-password.input';
 import { AuthService } from './auth.service';
 
 const ACCESS_TOKEN_COOKIE = 'gymflow_access_token';
@@ -97,6 +100,22 @@ export class AuthResolver {
     const tokens = await this.authService.login(input.email, input.password);
     this.setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
     return { success: true, accessToken: tokens.accessToken };
+  }
+
+  @Mutation(() => PasswordResetPayload)
+  async requestPasswordReset(
+    @Args('input') input: RequestPasswordResetInput,
+  ): Promise<PasswordResetPayload> {
+    await this.authService.requestPasswordReset(input.email, input.locale);
+    return { success: true };
+  }
+
+  @Mutation(() => PasswordResetPayload)
+  async resetPassword(
+    @Args('input') input: ResetPasswordInput,
+  ): Promise<PasswordResetPayload> {
+    await this.authService.resetPassword(input.token, input.password);
+    return { success: true };
   }
 
   /**
