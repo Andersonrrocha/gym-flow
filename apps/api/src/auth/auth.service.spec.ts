@@ -26,7 +26,10 @@ describe('AuthService', () => {
         AuthService,
         { provide: PrismaService, useValue: prisma },
         { provide: JwtService, useValue: jwtService },
-        { provide: MailService, useValue: { sendPasswordResetEmail: jest.fn() } },
+        {
+          provide: MailService,
+          useValue: { sendPasswordResetEmail: jest.fn() },
+        },
       ],
     }).compile();
 
