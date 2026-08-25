@@ -1,0 +1,16 @@
+{
+  "name": "@gymflow/validation",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./auth": "./src/auth.ts"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
+  }
+}
