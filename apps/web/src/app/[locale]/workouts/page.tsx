@@ -6,17 +6,27 @@ import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
+  ArrowRight,
   Clock,
-  LogOut,
-  Pencil,
-  Play,
+  History,
   Plus,
+  Sparkles,
+  Timer,
 } from "lucide-react";
-import { useLogout } from "@/hooks/use-logout";
 import { SectionHeader } from "@/components/workouts/section-header";
 import { TrainingStreak } from "@/components/workouts/training-streak";
 import { TrainingProgressSection } from "@/components/workouts/training-progress-section";
 import { StatItem } from "@/components/stats/StatItem";
+import { WorkoutListItem } from "@/components/workouts/workout-list-item";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Eyebrow, Heading, Mono, Text } from "@/components/ui/typography";
+import { AppLogo } from "@/components/ui/app-logo";
+import { UserMenu } from "@/components/navigation/user-menu";
+import { DesktopWorkoutDashboard } from "@/components/workouts/desktop-workout-dashboard";
+import { toastError } from "@/lib/toast";
 import {
   saveActiveSession,
   getActiveSession,
@@ -36,7 +46,6 @@ import {
   buildHomeDashboard,
   type HomeDashboard,
 } from "@/lib/home-dashboard-stats";
-import { AppLogo } from "@/components/ui/app-logo";
 import type { Workout, SessionSet, WorkoutSession } from "@/types/workouts";
 
 function prefillSets(
@@ -81,28 +90,54 @@ function createLocalSession(workout: Workout): WorkoutSession {
   };
 }
 
+type GreetingKey =
+  | "greeting"
+  | "greetingMorning"
+  | "greetingAfternoon"
+  | "greetingEvening";
+
+function pickGreetingKey(date = new Date()): GreetingKey {
+  const h = date.getHours();
+  if (h < 12) return "greetingMorning";
+  if (h < 18) return "greetingAfternoon";
+  return "greetingEvening";
+}
+
 type TemplateLoadState = "loading" | "empty" | "error" | "success";
 type DashboardLoadState = "loading" | "ready";
 
 export default function WorkoutsPage() {
   const t = useTranslations("WorkoutHome");
+  const tToast = useTranslations("Toast");
   const locale = useLocale();
   const router = useRouter();
   const client = useApolloClient();
-  const { logout } = useLogout();
 
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [templateLoadState, setTemplateLoadState] =
     useState<TemplateLoadState>("loading");
   const [startingId, setStartingId] = useState<string | null>(null);
   const [hasActiveSession, setHasActiveSession] = useState(false);
+  const [activeSessionMeta, setActiveSessionMeta] = useState<{
+    workoutName: string | null;
+    startedAt: string;
+  } | null>(null);
 
   const [dashboard, setDashboard] = useState<HomeDashboard | null>(null);
   const [dashboardLoadState, setDashboardLoadState] =
     useState<DashboardLoadState>("loading");
+  const [greetingKey, setGreetingKey] = useState<GreetingKey>("greeting");
 
   useEffect(() => {
-    setHasActiveSession(getActiveSession() !== null);
+    setGreetingKey(pickGreetingKey());
+    const session = getActiveSession();
+    setHasActiveSession(session !== null);
+    if (session) {
+      setActiveSessionMeta({
+        workoutName: session.workoutName,
+        startedAt: session.startedAt,
+      });
+    }
   }, []);
 
   const fetchWorkouts = useCallback(async () => {
@@ -161,7 +196,7 @@ export default function WorkoutsPage() {
   const handleStartWorkout = useCallback(
     async (workout: Workout) => {
       setStartingId(workout.id);
-      try {
+      const work = (async () => {
         const previousSession = getLatestSessionByWorkoutId(workout.id);
         const remote = await startSessionFromWorkoutApi(client, workout.id);
         const session = remote
@@ -169,192 +204,279 @@ export default function WorkoutsPage() {
               mergeSessionWithLocalPrefill(remote, previousSession),
             )
           : normalizeSession(createLocalSession(workout));
-
         saveActiveSession(session);
+        return session;
+      })();
+
+      try {
+        await work;
         router.push(`/${locale}/workouts/active`);
+      } catch {
+        toastError(tToast("workoutStartFailed"));
       } finally {
         setStartingId(null);
       }
     },
-    [client, locale, router],
+    [client, locale, router, tToast],
   );
 
   const statsReady = dashboardLoadState === "ready" && dashboard !== null;
+  const navigateBuilder = () => router.push(`/${locale}/workouts/builder`);
+  const navigateHistory = () => router.push(`/${locale}/workouts/history`);
+  const navigateActive = () => router.push(`/${locale}/workouts/active`);
 
   return (
-    <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-background w-full">
-      <div className="mx-auto w-full max-w-5xl px-2 py-6 sm:px-4">
-        <div className="flex items-center justify-between">
-          <AppLogo variant="inline" iconSize={40} />
-          <div className="flex items-center gap-3">
+    <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-background">
+      <DesktopWorkoutDashboard
+        workouts={workouts}
+        templateLoadState={templateLoadState}
+        dashboard={dashboard}
+        dashboardLoading={dashboardLoadState === "loading"}
+        hasActiveSession={hasActiveSession}
+        startingId={startingId}
+        locale={locale}
+        onCreateWorkout={navigateBuilder}
+        onEditWorkout={(workout) =>
+          router.push(`/${locale}/workouts/builder/${workout.id}`)
+        }
+        onStartWorkout={handleStartWorkout}
+        onResumeWorkout={navigateActive}
+        onViewHistory={navigateHistory}
+        onRetry={fetchWorkouts}
+      />
+
+      <div className="mx-auto w-full max-w-5xl px-4 pb-10 pt-4 sm:px-6 lg:hidden">
+        {/* Top bar */}
+        <div className="flex items-center justify-between gap-3">
+          <AppLogo variant="inline" iconSize={36} />
+          <div className="flex items-center gap-2">
             {!statsReady ? (
-              <div className="h-8 w-24 animate-pulse rounded-lg bg-muted" />
+              <Skeleton className="h-9 w-20 rounded-full" />
             ) : dashboard.streak > 0 ? (
               <TrainingStreak
                 count={dashboard.streak}
                 label={t("streakLabel")}
               />
             ) : null}
-            <button
-              type="button"
-              onClick={logout}
-              aria-label={t("logout")}
-              title={t("logout")}
-              className="rounded-lg p-2 text-primary opacity-90 transition-colors hover:bg-primary/10 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-            >
-              <LogOut className="size-5" strokeWidth={2} aria-hidden />
-            </button>
+            <UserMenu />
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-5">
-          <div className="lg:col-span-3 flex flex-col gap-5">
-            {hasActiveSession && (
-              <button
-                type="button"
-                onClick={() => router.push(`/${locale}/workouts/active`)}
-                className="flex w-full items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 text-left transition-colors hover:bg-primary/10"
-              >
-                <Play className="size-4 shrink-0 text-primary" aria-hidden />
-                <span className="min-w-0 flex-1 text-sm font-semibold text-primary">
+        {/* Greeting */}
+        <div className="mt-6">
+          <Eyebrow>{t(greetingKey)}</Eyebrow>
+          <Heading level="h1" className="mt-1">
+            {t("welcomeBack")}
+          </Heading>
+        </div>
+
+        {/* Hero */}
+        <section className="mt-5">
+          {hasActiveSession ? (
+            <Card
+              variant="primary"
+              padding="lg"
+              interactive
+              role="button"
+              tabIndex={0}
+              onClick={navigateActive}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  navigateActive();
+                }
+              }}
+              className="group relative overflow-hidden"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <Eyebrow className="text-primary-soft-foreground/80">
+                    {t("activeSessionTag")}
+                  </Eyebrow>
+                  <CardTitle className="mt-1 truncate text-xl text-primary-soft-foreground">
+                    {activeSessionMeta?.workoutName ?? t("resumeWorkout")}
+                  </CardTitle>
+                  <Text
+                    size="xs"
+                    className="mt-1 text-primary-soft-foreground/80"
+                  >
+                    {t("resumeWorkoutDescription")}
+                  </Text>
+                </div>
+                <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md transition-transform group-hover:scale-105">
+                  <Timer className="size-5" strokeWidth={2.2} aria-hidden />
+                </span>
+              </div>
+              <div className="mt-4 flex items-center gap-2 text-primary-soft-foreground">
+                <span className="text-sm font-semibold">
                   {t("resumeWorkout")}
                 </span>
-              </button>
-            )}
+                <ArrowRight
+                  className="size-4 transition-transform group-hover:translate-x-1"
+                  aria-hidden
+                />
+              </div>
+            </Card>
+          ) : (
+            <Card
+              variant="elevated"
+              padding="lg"
+              className="relative overflow-hidden"
+            >
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -right-12 -top-12 size-44 rounded-full bg-primary/15 blur-3xl"
+              />
+              <div className="relative flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <Eyebrow>{t("greeting")}</Eyebrow>
+                  <CardTitle className="mt-1 text-xl">
+                    {t("startNewWorkout")}
+                  </CardTitle>
+                  <Text size="xs" tone="muted" className="mt-1">
+                    {t("startNewWorkoutDescription")}
+                  </Text>
+                </div>
+                <span
+                  aria-hidden
+                  className="inline-flex size-12 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary"
+                >
+                  <Sparkles className="size-5" strokeWidth={2.2} />
+                </span>
+              </div>
+            </Card>
+          )}
+        </section>
 
-            <div>
+        {/* Two-column grid */}
+        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-5">
+          <div className="flex flex-col gap-5 lg:col-span-3">
+            {/* My Workouts */}
+            <section>
               <SectionHeader
                 title={t("myWorkouts")}
                 action={
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/${locale}/workouts/builder`)}
-                    className="inline-flex items-center gap-1 rounded-md p-1.5 text-primary transition-colors hover:bg-primary/10 sm:px-2 sm:py-1.5"
+                  <Button
+                    variant="soft"
+                    size="sm"
+                    onClick={navigateBuilder}
                     aria-label={t("createWorkout")}
-                    title={t("createWorkout")}
                   >
-                    <Plus
-                      className="size-4 shrink-0"
-                      strokeWidth={2.5}
-                      aria-hidden
-                    />
-                    <span className="hidden text-xs font-medium sm:inline">
+                    <Plus className="size-3.5" strokeWidth={2.4} aria-hidden />
+                    <span className="hidden sm:inline">
                       {t("createWorkout")}
                     </span>
-                  </button>
+                  </Button>
                 }
               />
 
-              <div className="mt-2">
+              <div className="mt-3">
                 {templateLoadState === "loading" && (
-                  <div className="flex items-center justify-center rounded-xl border border-border bg-card p-6">
-                    <span className="text-sm text-muted-foreground animate-pulse">
-                      {t("workoutsLoading")}
-                    </span>
-                  </div>
+                  <ul className="flex flex-col gap-2">
+                    {[0, 1, 2].map((i) => (
+                      <li
+                        key={i}
+                        className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3"
+                      >
+                        <Skeleton className="h-10 w-1.5" />
+                        <div className="flex-1">
+                          <Skeleton className="h-4 w-2/3" />
+                          <Skeleton className="mt-2 h-3 w-1/3" />
+                        </div>
+                        <Skeleton className="h-9 w-20" />
+                      </li>
+                    ))}
+                  </ul>
                 )}
 
                 {templateLoadState === "error" && (
-                  <div className="flex flex-col items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
-                    <p className="text-sm text-destructive">
-                      {t("workoutsError")}
-                    </p>
-                    <button
-                      onClick={fetchWorkouts}
-                      className="text-xs font-medium text-primary hover:underline"
-                    >
-                      {t("tryAgain")}
-                    </button>
-                  </div>
+                  <EmptyState
+                    tone="destructive"
+                    title={t("workoutsError")}
+                    action={
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={fetchWorkouts}
+                      >
+                        {t("tryAgain")}
+                      </Button>
+                    }
+                  />
                 )}
 
                 {templateLoadState === "empty" && (
-                  <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card p-6 text-center">
-                    <p className="text-sm text-muted-foreground">
-                      {t("workoutsEmpty")}
-                    </p>
-                    <button
-                      onClick={() => router.push(`/${locale}/workouts/builder`)}
-                      className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
-                    >
-                      {t("createWorkout")}
-                    </button>
-                  </div>
+                  <EmptyState
+                    icon={Plus}
+                    title={t("workoutsEmpty")}
+                    action={
+                      <Button onClick={navigateBuilder} size="md">
+                        <Plus
+                          className="size-4"
+                          strokeWidth={2.4}
+                          aria-hidden
+                        />
+                        <span>{t("createWorkout")}</span>
+                      </Button>
+                    }
+                  />
                 )}
 
                 {templateLoadState === "success" && (
                   <ul className="flex flex-col gap-2">
                     {workouts.map((workout) => (
-                      <li
+                      <WorkoutListItem
                         key={workout.id}
-                        className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-foreground">
-                            {workout.name}
-                          </p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {t("exercises", {
-                              count: workout.exercises.length,
-                            })}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 ml-3 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              router.push(
-                                `/${locale}/workouts/builder/${workout.id}`,
-                              )
-                            }
-                            className="inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
-                            aria-label={t("edit")}
-                            title={t("edit")}
-                          >
-                            <Pencil className="size-4" strokeWidth={2} aria-hidden />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleStartWorkout(workout)}
-                            disabled={startingId !== null}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
-                          >
-                            <Play
-                              className="size-4 shrink-0 text-primary-foreground"
-                              aria-hidden
-                            />
-                            <span>
-                              {startingId === workout.id
-                                ? t("starting")
-                                : t("startWorkout")}
-                            </span>
-                          </button>
-                        </div>
-                      </li>
+                        workout={workout}
+                        exercisesLabel={t("exercises", {
+                          count: workout.exercises.length,
+                        })}
+                        startLabel={t("startWorkout")}
+                        startingLabel={t("starting")}
+                        editLabel={t("edit")}
+                        isStarting={startingId === workout.id}
+                        disableStart={
+                          startingId !== null && startingId !== workout.id
+                        }
+                        onStart={() => handleStartWorkout(workout)}
+                        onEdit={() =>
+                          router.push(
+                            `/${locale}/workouts/builder/${workout.id}`,
+                          )
+                        }
+                      />
                     ))}
                   </ul>
                 )}
               </div>
-            </div>
+            </section>
 
-            <TrainingProgressSection
-              loading={!statsReady}
-              progress={statsReady ? dashboard.progress : null}
-            />
+            {/* Training progress (teaser for /progress) */}
+            <Card padding="md">
+              <TrainingProgressSection
+                loading={!statsReady}
+                progress={statsReady ? dashboard.progress : null}
+              />
+            </Card>
           </div>
 
-          <div className="lg:col-span-2 flex flex-col gap-5">
-            <div>
-              <SectionHeader title={t("quickStats")} />
+          <div className="flex flex-col gap-5 lg:col-span-2">
+            {/* Quick stats */}
+            <Card padding="md">
+              <CardHeader>
+                <CardTitle>{t("quickStats")}</CardTitle>
+              </CardHeader>
               {statsReady ? (
-                <div className="mt-2 flex gap-6 rounded-xl border border-border bg-card p-3">
+                <div className="grid grid-cols-2 gap-3">
                   <StatItem
+                    icon={<Clock className="size-3.5" />}
                     value={String(dashboard.weeklySummary.workoutsThisWeek)}
                     label={t("workoutsThisWeek", {
                       count: dashboard.weeklySummary.workoutsThisWeek,
                     })}
                   />
                   <StatItem
+                    icon={<Sparkles className="size-3.5" />}
                     value={formatNumber(
                       dashboard.weeklySummary.totalVolumeThisWeek,
                       locale,
@@ -368,77 +490,83 @@ export default function WorkoutsPage() {
                   />
                 </div>
               ) : (
-                <div className="mt-2 h-16 animate-pulse rounded-xl bg-muted" />
+                <div className="grid grid-cols-2 gap-3">
+                  <Skeleton className="h-16" />
+                  <Skeleton className="h-16" />
+                </div>
               )}
-            </div>
+            </Card>
 
-            <div>
-              <SectionHeader
-                title={t("lastWorkout")}
-                action={
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/${locale}/workouts/history`)}
-                    className="inline-flex max-w-[min(100%,11rem)] items-center gap-1.5 rounded-md px-1.5 py-1 text-left text-xs font-medium text-primary transition-colors hover:bg-primary/10 sm:max-w-none"
-                    aria-label={t("sessionHistory")}
-                    title={t("sessionHistory")}
-                  >
-                    <Clock className="size-3.5 shrink-0" strokeWidth={2} aria-hidden />
-                    <span className="min-w-0 truncate leading-tight">
-                      {t("sessionHistory")}
-                    </span>
-                  </button>
-                }
-              />
+            {/* Last workout */}
+            <Card padding="md">
+              <CardHeader>
+                <CardTitle>{t("lastWorkout")}</CardTitle>
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={navigateHistory}
+                  className="h-auto px-0 text-xs"
+                  aria-label={t("sessionHistory")}
+                >
+                  <History className="size-3.5" aria-hidden />
+                  <span>{t("sessionHistory")}</span>
+                </Button>
+              </CardHeader>
 
-              {!statsReady && (
-                <div className="mt-2 h-16 animate-pulse rounded-xl bg-muted" />
-              )}
+              {!statsReady && <Skeleton className="h-20" />}
 
               {statsReady && dashboard.lastSession === null && (
-                <div className="mt-2 flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-3 text-center">
-                  <p className="text-xs text-muted-foreground">
-                    {t("lastSessionEmpty")}
-                  </p>
-                  <button
-                    onClick={() => router.push(`/${locale}/workouts/history`)}
-                    className="text-xs font-medium text-primary hover:underline"
-                  >
-                    {t("lastSessionEmptyCta")}
-                  </button>
-                </div>
+                <EmptyState
+                  title={t("lastSessionEmpty")}
+                  action={
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={navigateHistory}
+                      className="h-auto px-0"
+                    >
+                      {t("lastSessionEmptyCta")}
+                    </Button>
+                  }
+                />
               )}
 
               {statsReady && dashboard.lastSession !== null && (
-                <div className="mt-2 rounded-xl border border-border bg-card p-3">
-                  <p className="text-sm font-semibold text-foreground">
+                <div>
+                  <p className="font-display text-base font-semibold text-foreground">
                     {dashboard.lastSession.workoutName}
                   </p>
-                  <div className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="font-mono tabular-nums">
-                      {t("totalSets", {
-                        count: dashboard.lastSession.totalSets,
-                      })}
+                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1">
+                      <Mono>
+                        {t("totalSets", {
+                          count: dashboard.lastSession.totalSets,
+                        })}
+                      </Mono>
                     </span>
-                    <span>·</span>
-                    <span className="font-mono tabular-nums">
-                      {t("totalVolume", {
-                        value: formatNumber(
-                          dashboard.lastSession.totalVolume,
-                          locale,
-                        ),
-                      })}
+                    <span aria-hidden>·</span>
+                    <span className="inline-flex items-center gap-1">
+                      <Mono>
+                        {t("totalVolume", {
+                          value: formatNumber(
+                            dashboard.lastSession.totalVolume,
+                            locale,
+                          ),
+                        })}
+                      </Mono>
                     </span>
-                    <span>·</span>
-                    <span className="font-mono tabular-nums">
-                      {t("duration", {
-                        minutes: dashboard.lastSession.durationMinutes,
-                      })}
+                    <span aria-hidden>·</span>
+                    <span className="inline-flex items-center gap-1">
+                      <Mono>
+                        {t("duration", {
+                          minutes: dashboard.lastSession.durationMinutes,
+                        })}
+                      </Mono>
                     </span>
                   </div>
                 </div>
               )}
-            </div>
+            </Card>
           </div>
         </div>
       </div>
