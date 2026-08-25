@@ -45,6 +45,15 @@ function SummaryPageContent() {
     let cancelled = false;
 
     void (async () => {
+      // The just-finished local snapshot includes the edits made in the active workout.
+      // Prefer it while it is available instead of briefly showing stale API aggregates.
+      const local = getWorkoutSessionById(sessionId);
+      if (local) {
+        setSummary(computeSessionMetrics(local));
+        setLoaded(true);
+        return;
+      }
+
       const remote = await getWorkoutSessionByIdApi(client, sessionId);
 
       if (!cancelled && remote) {
@@ -53,10 +62,8 @@ function SummaryPageContent() {
         return;
       }
 
-      const local = getWorkoutSessionById(sessionId);
-
       if (!cancelled) {
-        setSummary(local ? computeSessionMetrics(local) : null);
+        setSummary(null);
         setLoaded(true);
       }
     })();
