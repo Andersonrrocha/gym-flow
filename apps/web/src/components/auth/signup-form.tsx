@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef } from "react";
+import { Check, Mail, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,7 +11,10 @@ import {
   createSignupSchema,
   getPasswordRuleState,
 } from "@/lib/validation/auth";
+import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
+import { Button } from "@/components/ui/button";
+import { toastError } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 
@@ -34,6 +39,7 @@ export function SignupForm() {
     formState: { errors, isSubmitting },
   } = useForm<SignupFormValues>({
     resolver: zodResolver(schema),
+    mode: "onBlur",
     defaultValues: {
       email: "",
       password: "",
@@ -60,141 +66,111 @@ export function SignupForm() {
       ? t("genericError")
       : null;
 
+  const lastErrorRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (signupError && signupError !== lastErrorRef.current) {
+      toastError(signupError);
+      lastErrorRef.current = signupError;
+    }
+    if (!signupError) {
+      lastErrorRef.current = null;
+    }
+  }, [signupError]);
+
+  const submitting = loading || isSubmitting;
+
+  const rules: Array<{ key: keyof typeof passwordRuleState; label: string }> = [
+    { key: "hasUppercase", label: t("passwordRuleUppercase") },
+    { key: "hasLowercase", label: t("passwordRuleLowercase") },
+    { key: "hasNumber", label: t("passwordRuleNumber") },
+    { key: "hasSpecial", label: t("passwordRuleSpecial") },
+  ];
+
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <label
-          htmlFor="email"
-          className="text-sm font-medium text-muted-foreground"
-        >
-          {t("emailLabel")}
-        </label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="email"
-          placeholder={t("emailPlaceholder")}
-          {...register("email")}
-          disabled={loading || isSubmitting}
-          className="h-12 rounded-lg border border-input bg-muted px-4 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-        />
-        {errors.email?.message && (
-          <p className="text-sm text-destructive" role="alert">
-            {errors.email.message}
-          </p>
-        )}
-      </div>
+    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+      <Input
+        id="email"
+        type="email"
+        autoComplete="email"
+        leftIcon={Mail}
+        label={t("emailLabel")}
+        placeholder={t("emailPlaceholder")}
+        error={errors.email?.message ?? null}
+        disabled={submitting}
+        {...register("email")}
+      />
 
-      <div className="flex flex-col gap-2">
-        <label
-          htmlFor="password"
-          className="text-sm font-medium text-muted-foreground"
-        >
-          {t("passwordLabel")}
-        </label>
-        <PasswordInput
-          id="password"
-          autoComplete="new-password"
-          placeholder={t("passwordPlaceholder")}
-          showPasswordLabel={t("showPassword")}
-          hidePasswordLabel={t("hidePassword")}
-          {...register("password")}
-          disabled={loading || isSubmitting}
-        />
-        {errors.password?.message && (
-          <p className="text-sm text-destructive" role="alert">
-            {errors.password.message}
-          </p>
-        )}
-        {showPasswordRules && (
-          <div className="space-y-2 rounded-lg border border-border bg-muted/40 p-3 text-sm">
-            <p className="font-medium text-foreground">{t("passwordLegendTitle")}</p>
-            <ul className="space-y-1">
-              <li
-                className={cn(
-                  "transition-colors",
-                  passwordRuleState.hasUppercase
-                    ? "text-emerald-400"
-                    : "text-destructive",
-                )}
-              >
-                {t("passwordRuleUppercase")}
-              </li>
-              <li
-                className={cn(
-                  "transition-colors",
-                  passwordRuleState.hasLowercase
-                    ? "text-emerald-400"
-                    : "text-destructive",
-                )}
-              >
-                {t("passwordRuleLowercase")}
-              </li>
-              <li
-                className={cn(
-                  "transition-colors",
-                  passwordRuleState.hasNumber
-                    ? "text-emerald-400"
-                    : "text-destructive",
-                )}
-              >
-                {t("passwordRuleNumber")}
-              </li>
-              <li
-                className={cn(
-                  "transition-colors",
-                  passwordRuleState.hasSpecial
-                    ? "text-emerald-400"
-                    : "text-destructive",
-                )}
-              >
-                {t("passwordRuleSpecial")}
-              </li>
-            </ul>
-          </div>
-        )}
-      </div>
+      <PasswordInput
+        id="password"
+        autoComplete="new-password"
+        label={t("passwordLabel")}
+        placeholder={t("passwordPlaceholder")}
+        showPasswordLabel={t("showPassword")}
+        hidePasswordLabel={t("hidePassword")}
+        error={errors.password?.message ?? null}
+        disabled={submitting}
+        {...register("password")}
+      />
 
-      <div className="flex flex-col gap-2">
-        <label
-          htmlFor="confirmPassword"
-          className="text-sm font-medium text-muted-foreground"
-        >
-          {t("confirmPasswordLabel")}
-        </label>
-        <PasswordInput
-          id="confirmPassword"
-          autoComplete="new-password"
-          placeholder={t("confirmPasswordPlaceholder")}
-          showPasswordLabel={t("showPassword")}
-          hidePasswordLabel={t("hidePassword")}
-          {...register("confirmPassword")}
-          disabled={loading || isSubmitting}
-        />
-        {errors.confirmPassword?.message && (
-          <p className="text-sm text-destructive" role="alert">
-            {errors.confirmPassword.message}
+      {showPasswordRules && (
+        <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {t("passwordLegendTitle")}
           </p>
-        )}
-      </div>
-
-      {signupError && (
-        <p className="text-sm text-destructive" role="alert">
-          {signupError}
-        </p>
+          <ul className="grid grid-cols-1 gap-1.5 text-xs sm:grid-cols-2">
+            {rules.map(({ key, label }) => {
+              const ok = passwordRuleState[key];
+              return (
+                <li
+                  key={key}
+                  className={cn(
+                    "flex items-center gap-1.5 transition-colors",
+                    ok ? "text-success" : "text-muted-foreground",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "inline-flex size-4 items-center justify-center rounded-full",
+                      ok
+                        ? "bg-success/20 text-success"
+                        : "bg-muted text-muted-foreground/70",
+                    )}
+                    aria-hidden
+                  >
+                    {ok ? (
+                      <Check className="size-3" strokeWidth={3} />
+                    ) : (
+                      <X className="size-3" strokeWidth={3} />
+                    )}
+                  </span>
+                  {label}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       )}
 
-      <button
+      <PasswordInput
+        id="confirmPassword"
+        autoComplete="new-password"
+        label={t("confirmPasswordLabel")}
+        placeholder={t("confirmPasswordPlaceholder")}
+        showPasswordLabel={t("showPassword")}
+        hidePasswordLabel={t("hidePassword")}
+        error={errors.confirmPassword?.message ?? null}
+        disabled={submitting}
+        {...register("confirmPassword")}
+      />
+
+      <Button
         type="submit"
-        disabled={loading || isSubmitting}
-        className="mt-2 flex h-12 items-center justify-center rounded-lg bg-primary text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+        size="lg"
+        className="mt-2 w-full"
+        loading={submitting}
       >
-        {loading ? (
-          <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-        ) : (
-          t("submit")
-        )}
-      </button>
+        {t("submit")}
+      </Button>
 
       <p className="text-center text-sm text-muted-foreground">
         {t("hasAccount")}{" "}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Check, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useForm, useWatch } from "react-hook-form";
@@ -11,6 +12,7 @@ import {
   getPasswordRuleState,
 } from "@/lib/validation/auth";
 import { PasswordInput } from "@/components/ui/password-input";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 
@@ -38,10 +40,15 @@ export function ResetPasswordForm() {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
+    mode: "onBlur",
     defaultValues: { password: "", confirmPassword: "" },
   });
 
-  const passwordValue = useWatch({ control, name: "password", defaultValue: "" });
+  const passwordValue = useWatch({
+    control,
+    name: "password",
+    defaultValue: "",
+  });
   const passwordRuleState = getPasswordRuleState(passwordValue);
   const showPasswordRules = passwordValue.length > 0;
 
@@ -63,7 +70,10 @@ export function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <p className="text-center text-sm text-destructive" role="alert">
+      <p
+        className="rounded-lg border border-destructive/30 bg-destructive-soft px-3 py-2 text-center text-sm text-destructive"
+        role="alert"
+      >
         {t("invalidOrExpired")}
       </p>
     );
@@ -72,7 +82,9 @@ export function ResetPasswordForm() {
   if (success) {
     return (
       <div className="flex flex-col gap-4 text-center">
-        <p className="text-base font-semibold text-foreground">{t("successTitle")}</p>
+        <p className="font-display text-xl font-bold text-foreground">
+          {t("successTitle")}
+        </p>
         <p className="text-sm text-muted-foreground">{t("successMessage")}</p>
         <Link
           href={`/${locale}/login`}
@@ -84,120 +96,97 @@ export function ResetPasswordForm() {
     );
   }
 
-  return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <label
-          htmlFor="password"
-          className="text-sm font-medium text-muted-foreground"
-        >
-          {tSignup("passwordLabel")}
-        </label>
-        <PasswordInput
-          id="password"
-          autoComplete="new-password"
-          placeholder={tSignup("passwordPlaceholder")}
-          showPasswordLabel={tSignup("showPassword")}
-          hidePasswordLabel={tSignup("hidePassword")}
-          {...register("password")}
-          disabled={loading || isSubmitting}
-        />
-        {errors.password?.message && (
-          <p className="text-sm text-destructive" role="alert">
-            {errors.password.message}
-          </p>
-        )}
-        {showPasswordRules && (
-          <div className="space-y-2 rounded-lg border border-border bg-muted/40 p-3 text-sm">
-            <p className="font-medium text-foreground">
-              {tSignup("passwordLegendTitle")}
-            </p>
-            <ul className="space-y-1">
-              <li
-                className={cn(
-                  "transition-colors",
-                  passwordRuleState.hasUppercase
-                    ? "text-emerald-400"
-                    : "text-destructive",
-                )}
-              >
-                {tSignup("passwordRuleUppercase")}
-              </li>
-              <li
-                className={cn(
-                  "transition-colors",
-                  passwordRuleState.hasLowercase
-                    ? "text-emerald-400"
-                    : "text-destructive",
-                )}
-              >
-                {tSignup("passwordRuleLowercase")}
-              </li>
-              <li
-                className={cn(
-                  "transition-colors",
-                  passwordRuleState.hasNumber
-                    ? "text-emerald-400"
-                    : "text-destructive",
-                )}
-              >
-                {tSignup("passwordRuleNumber")}
-              </li>
-              <li
-                className={cn(
-                  "transition-colors",
-                  passwordRuleState.hasSpecial
-                    ? "text-emerald-400"
-                    : "text-destructive",
-                )}
-              >
-                {tSignup("passwordRuleSpecial")}
-              </li>
-            </ul>
-          </div>
-        )}
-      </div>
+  const submitting = loading || isSubmitting;
 
-      <div className="flex flex-col gap-2">
-        <label
-          htmlFor="confirmPassword"
-          className="text-sm font-medium text-muted-foreground"
-        >
-          {tSignup("confirmPasswordLabel")}
-        </label>
-        <PasswordInput
-          id="confirmPassword"
-          autoComplete="new-password"
-          placeholder={tSignup("confirmPasswordPlaceholder")}
-          showPasswordLabel={tSignup("showPassword")}
-          hidePasswordLabel={tSignup("hidePassword")}
-          {...register("confirmPassword")}
-          disabled={loading || isSubmitting}
-        />
-        {errors.confirmPassword?.message && (
-          <p className="text-sm text-destructive" role="alert">
-            {errors.confirmPassword.message}
+  const rules: Array<{ key: keyof typeof passwordRuleState; label: string }> = [
+    { key: "hasUppercase", label: tSignup("passwordRuleUppercase") },
+    { key: "hasLowercase", label: tSignup("passwordRuleLowercase") },
+    { key: "hasNumber", label: tSignup("passwordRuleNumber") },
+    { key: "hasSpecial", label: tSignup("passwordRuleSpecial") },
+  ];
+
+  return (
+    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+      <PasswordInput
+        id="password"
+        autoComplete="new-password"
+        label={tSignup("passwordLabel")}
+        placeholder={tSignup("passwordPlaceholder")}
+        showPasswordLabel={tSignup("showPassword")}
+        hidePasswordLabel={tSignup("hidePassword")}
+        error={errors.password?.message ?? null}
+        disabled={submitting}
+        {...register("password")}
+      />
+
+      {showPasswordRules && (
+        <div className="space-y-2 rounded-xl border border-border bg-muted/30 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {tSignup("passwordLegendTitle")}
           </p>
-        )}
-      </div>
+          <ul className="grid grid-cols-1 gap-1.5 text-xs sm:grid-cols-2">
+            {rules.map(({ key, label }) => {
+              const ok = passwordRuleState[key];
+              return (
+                <li
+                  key={key}
+                  className={cn(
+                    "flex items-center gap-1.5 transition-colors",
+                    ok ? "text-success" : "text-muted-foreground",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "inline-flex size-4 items-center justify-center rounded-full",
+                      ok
+                        ? "bg-success/20 text-success"
+                        : "bg-muted text-muted-foreground/70",
+                    )}
+                    aria-hidden
+                  >
+                    {ok ? (
+                      <Check className="size-3" strokeWidth={3} />
+                    ) : (
+                      <X className="size-3" strokeWidth={3} />
+                    )}
+                  </span>
+                  {label}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      <PasswordInput
+        id="confirmPassword"
+        autoComplete="new-password"
+        label={tSignup("confirmPasswordLabel")}
+        placeholder={tSignup("confirmPasswordPlaceholder")}
+        showPasswordLabel={tSignup("showPassword")}
+        hidePasswordLabel={tSignup("hidePassword")}
+        error={errors.confirmPassword?.message ?? null}
+        disabled={submitting}
+        {...register("confirmPassword")}
+      />
 
       {graphQLError && (
-        <p className="text-sm text-destructive" role="alert">
+        <p
+          className="rounded-lg border border-destructive/30 bg-destructive-soft px-3 py-2 text-sm text-destructive"
+          role="alert"
+        >
           {graphQLError}
         </p>
       )}
 
-      <button
+      <Button
         type="submit"
-        disabled={loading || isSubmitting}
-        className="mt-2 flex h-12 items-center justify-center rounded-lg bg-primary text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+        size="lg"
+        className="mt-2 w-full"
+        loading={submitting}
       >
-        {loading ? (
-          <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-        ) : (
-          t("submit")
-        )}
-      </button>
+        {t("submit")}
+      </Button>
     </form>
   );
 }

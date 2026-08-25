@@ -1,12 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef } from "react";
+import { Mail } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLogin } from "@/hooks/use-login";
 import { createLoginSchema } from "@/lib/validation/auth";
+import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
+import { Button } from "@/components/ui/button";
+import { toastError } from "@/lib/toast";
 import { z } from "zod";
 
 export function LoginForm() {
@@ -26,6 +31,7 @@ export function LoginForm() {
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(schema),
+    mode: "onBlur",
     defaultValues: {
       email: "",
       password: "",
@@ -47,79 +53,63 @@ export function LoginForm() {
           ? t("genericError")
           : null;
 
-  return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <label
-          htmlFor="email"
-          className="text-sm font-medium text-muted-foreground"
-        >
-          {t("emailLabel")}
-        </label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="email"
-          placeholder={t("emailPlaceholder")}
-          {...register("email")}
-          disabled={loading || isSubmitting}
-          className="h-12 rounded-lg border border-input bg-muted px-4 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-        />
-        {errors.email?.message && (
-          <p className="text-sm text-destructive" role="alert">
-            {errors.email.message}
-          </p>
-        )}
-      </div>
+  const lastErrorRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (loginError && loginError !== lastErrorRef.current) {
+      toastError(loginError);
+      lastErrorRef.current = loginError;
+    }
+    if (!loginError) {
+      lastErrorRef.current = null;
+    }
+  }, [loginError]);
 
-      <div className="flex flex-col gap-2">
-        <label
-          htmlFor="password"
-          className="text-sm font-medium text-muted-foreground"
-        >
-          {t("passwordLabel")}
-        </label>
+  const submitting = loading || isSubmitting;
+
+  return (
+    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+      <Input
+        id="email"
+        type="email"
+        autoComplete="email"
+        leftIcon={Mail}
+        label={t("emailLabel")}
+        placeholder={t("emailPlaceholder")}
+        error={errors.email?.message ?? null}
+        disabled={submitting}
+        {...register("email")}
+      />
+
+      <div className="flex flex-col gap-1">
         <PasswordInput
           id="password"
           autoComplete="current-password"
+          label={t("passwordLabel")}
           placeholder={t("passwordPlaceholder")}
           showPasswordLabel={t("showPassword")}
           hidePasswordLabel={t("hidePassword")}
+          error={errors.password?.message ?? null}
+          disabled={submitting}
           {...register("password")}
-          disabled={loading || isSubmitting}
         />
-        {errors.password?.message && (
-          <p className="text-sm text-destructive" role="alert">
-            {errors.password.message}
-          </p>
-        )}
         <div className="flex justify-end">
           <Link
             href={`/${locale}/forgot-password`}
-            className="text-xs font-medium text-primary hover:underline"
+            className="text-xs font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
           >
             {t("forgotPasswordLink")}
           </Link>
         </div>
       </div>
 
-      {loginError && (
-        <p className="text-sm text-destructive" role="alert">
-          {loginError}
-        </p>
-      )}
-
-      <button
+      <Button
         type="submit"
-        disabled={loading || isSubmitting}
-        className="mt-2 flex h-12 items-center justify-center rounded-lg bg-primary text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+        size="lg"
+        className="mt-2 w-full"
+        loading={submitting}
       >
-        {loading ? (
-          <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-        ) : (
-          t("submit")
-        )}
-      </button>
+        {t("submit")}
+      </Button>
 
       <p className="text-center text-sm text-muted-foreground">
         {t("noAccount")}{" "}

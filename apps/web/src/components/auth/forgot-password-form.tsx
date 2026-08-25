@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { Mail } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRequestPasswordReset } from "@/hooks/use-request-password-reset";
 import { createForgotPasswordSchema } from "@/lib/validation/auth";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { z } from "zod";
 
 export function ForgotPasswordForm() {
@@ -27,6 +30,7 @@ export function ForgotPasswordForm() {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
+    mode: "onBlur",
     defaultValues: { email: "" },
   });
 
@@ -49,48 +53,39 @@ export function ForgotPasswordForm() {
     );
   }
 
+  const submitting = loading || isSubmitting;
+
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <label
-          htmlFor="email"
-          className="text-sm font-medium text-muted-foreground"
-        >
-          {tLogin("emailLabel")}
-        </label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="email"
-          placeholder={tLogin("emailPlaceholder")}
-          {...register("email")}
-          disabled={loading || isSubmitting}
-          className="h-12 rounded-lg border border-input bg-muted px-4 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-        />
-        {errors.email?.message && (
-          <p className="text-sm text-destructive" role="alert">
-            {errors.email.message}
-          </p>
-        )}
-      </div>
+    <form onSubmit={onSubmit} className="flex flex-col gap-4">
+      <Input
+        id="email"
+        type="email"
+        autoComplete="email"
+        leftIcon={Mail}
+        label={tLogin("emailLabel")}
+        placeholder={tLogin("emailPlaceholder")}
+        error={errors.email?.message ?? null}
+        disabled={submitting}
+        {...register("email")}
+      />
 
       {errorMessage && (
-        <p className="text-sm text-destructive" role="alert">
+        <p
+          className="rounded-lg border border-destructive/30 bg-destructive-soft px-3 py-2 text-sm text-destructive"
+          role="alert"
+        >
           {t("genericError")}
         </p>
       )}
 
-      <button
+      <Button
         type="submit"
-        disabled={loading || isSubmitting}
-        className="mt-2 flex h-12 items-center justify-center rounded-lg bg-primary text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+        size="lg"
+        className="mt-2 w-full"
+        loading={submitting}
       >
-        {loading ? (
-          <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-        ) : (
-          t("submit")
-        )}
-      </button>
+        {t("submit")}
+      </Button>
 
       <p className="text-center text-sm text-muted-foreground">
         <Link
