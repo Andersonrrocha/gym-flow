@@ -1,6 +1,7 @@
 import { DesktopSidebar } from "@/components/navigation/DesktopSidebar";
 import { BottomNavigation } from "@/components/navigation/BottomNavigation";
 import { ProactiveRefresh } from "@/components/auth/ProactiveRefresh";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 
 type WorkoutsLayoutProps = {
   children: React.ReactNode;
@@ -12,11 +13,12 @@ export default function WorkoutsLayout({ children }: WorkoutsLayoutProps) {
       <ProactiveRefresh />
       <DesktopSidebar />
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col pt-(--app-safe-top) pb-[calc(3.5rem+(--app-safe-bottom))] lg:pb-0 lg:pt-0">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col pt-(--app-safe-top) pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0 lg:pt-0">
         {children}
       </div>
 
       <BottomNavigation />
+      <PwaInstallPrompt />
     </div>
   );
 }

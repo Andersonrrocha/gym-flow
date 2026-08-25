@@ -25,22 +25,29 @@ export function PageHeader({
   const locale = useLocale();
 
   return (
-    <div className={cn("flex flex-nowrap items-start justify-between gap-3", className)}>
-      <div className="flex min-w-0 flex-1 items-start gap-1">
+    <div
+      className={cn(
+        "flex flex-nowrap items-center justify-between gap-3",
+        className,
+      )}
+    >
+      <div className="flex min-w-0 flex-1 items-center gap-2">
         <Link
           href={`/${locale}${href}`}
-          className="mt-0.5 shrink-0 rounded-md p-1 text-primary transition-colors hover:bg-primary/10"
+          className="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           aria-label={backAriaLabel}
         >
-          <ChevronLeft className="size-[18px]" strokeWidth={2.5} aria-hidden />
+          <ChevronLeft className="size-5" strokeWidth={2.4} aria-hidden />
         </Link>
 
         <div className="min-w-0">
-          <h1 className="truncate text-xl font-bold tracking-tight text-foreground">
+          <h1 className="truncate font-display text-xl font-bold tracking-tight text-foreground sm:text-2xl">
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              {subtitle}
+            </p>
           )}
         </div>
       </div>
