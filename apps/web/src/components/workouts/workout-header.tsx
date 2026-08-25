@@ -23,8 +23,20 @@ function formatElapsed(ms: number) {
 }
 
 function subscribeToTimer(cb: () => void) {
-  const id = setInterval(cb, 1000);
+  const tick = () => {
+    timerSnapshot = Date.now();
+    cb();
+  };
+
+  tick();
+  const id = setInterval(tick, 1000);
   return () => clearInterval(id);
+}
+
+let timerSnapshot = 0;
+
+function getTimerSnapshot() {
+  return timerSnapshot;
 }
 
 function getServerElapsed() {
@@ -41,11 +53,12 @@ export function WorkoutHeader({
 }: WorkoutHeaderProps) {
   const locale = useLocale();
   const start = new Date(startedAt).getTime();
-  const elapsed = useSyncExternalStore(
+  const currentTime = useSyncExternalStore(
     subscribeToTimer,
-    () => Date.now() - start,
-    () => getServerElapsed(),
+    getTimerSnapshot,
+    getServerElapsed,
   );
+  const elapsed = currentTime === 0 ? 0 : Math.max(0, currentTime - start);
 
   const timerEl = (
     <p

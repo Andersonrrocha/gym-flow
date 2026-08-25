@@ -37,6 +37,7 @@ import {
   type HomeDashboard,
 } from "@/lib/home-dashboard-stats";
 import { AppLogo } from "@/components/ui/app-logo";
+import { DesktopWorkoutDashboard } from "@/components/workouts/desktop-workout-dashboard";
 import type { Workout, SessionSet, WorkoutSession } from "@/types/workouts";
 
 function prefillSets(
@@ -183,7 +184,25 @@ export default function WorkoutsPage() {
 
   return (
     <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-background w-full">
-      <div className="mx-auto w-full max-w-5xl px-2 py-6 sm:px-4">
+      <DesktopWorkoutDashboard
+        workouts={workouts}
+        templateLoadState={templateLoadState}
+        dashboard={dashboard}
+        dashboardLoading={dashboardLoadState === "loading"}
+        hasActiveSession={hasActiveSession}
+        startingId={startingId}
+        locale={locale}
+        onCreateWorkout={() => router.push(`/${locale}/workouts/builder`)}
+        onEditWorkout={(workout) =>
+          router.push(`/${locale}/workouts/builder/${workout.id}`)
+        }
+        onStartWorkout={handleStartWorkout}
+        onResumeWorkout={() => router.push(`/${locale}/workouts/active`)}
+        onViewHistory={() => router.push(`/${locale}/workouts/history`)}
+        onRetry={fetchWorkouts}
+      />
+
+      <div className="mx-auto w-full max-w-5xl px-2 py-6 sm:px-4 lg:hidden">
         <div className="flex items-center justify-between">
           <AppLogo variant="inline" iconSize={40} />
           <div className="flex items-center gap-3">

@@ -119,7 +119,7 @@ export function ExerciseBlock({
         }
       }}
     >
-      <div className="mb-2 flex items-center justify-between gap-2">
+      <div className="mb-2 flex min-w-0 items-center justify-between gap-2">
         <h3
           className={cn(
             "min-w-0 flex-1 truncate font-bold tracking-tight",
@@ -196,7 +196,7 @@ export function ExerciseBlock({
                 />
               ))}
 
-              <div className="mt-2 flex items-center justify-between">
+              <div className="mt-2 flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => onAddSet?.(exercise.id)}

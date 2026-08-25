@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
 import type { SessionSet } from "@/types/workouts";
@@ -174,7 +174,7 @@ export function SetRow({
   return (
     <motion.div
       className={cn(
-        "flex min-w-0 items-center gap-1 rounded-md px-1 py-1.5 transition-colors sm:gap-2 sm:px-2 sm:py-2 md:gap-3 md:px-3",
+        "flex w-full min-w-0 items-center gap-1 rounded-md px-1 py-1.5 transition-colors sm:gap-2 sm:px-2 sm:py-2 md:gap-3 md:px-3",
         set.completed ? "bg-success/10" : "bg-muted/40",
       )}
       initial={{ opacity: 0, y: 6 }}
@@ -244,13 +244,17 @@ export function SetRow({
         onClick={() => onToggle?.(set.id)}
         aria-label={set.completed ? "Unmark set" : "Complete set"}
         className={cn(
-          "ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-[10px] transition-all sm:h-7 sm:w-7 sm:text-xs",
+          "ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-[10px] transition-all sm:h-7 sm:w-7 sm:text-xs",
           set.completed
             ? "border-success bg-success text-success-foreground"
             : "border-border text-muted-foreground hover:border-primary/50",
         )}
       >
-        {set.completed ? "✓" : ""}
+        <Check
+          className={cn("size-3", set.completed ? "opacity-100" : "opacity-45")}
+          strokeWidth={2.5}
+          aria-hidden
+        />
       </button>
     </motion.div>
   );

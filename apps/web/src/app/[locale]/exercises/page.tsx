@@ -5,7 +5,7 @@ import { useApolloClient } from "@apollo/client/react";
 import { useTranslations } from "next-intl";
 import { ExerciseFilterChips } from "@/components/workouts/exercise-filter-chips";
 import { CreateExerciseModal } from "@/components/exercises/CreateExerciseModal";
-import { Plus } from "lucide-react";
+import { Dumbbell, Plus, Search, SlidersHorizontal } from "lucide-react";
 import { searchExercisesApi, createExerciseApi } from "@/lib/api/exercise-api";
 import { applyExerciseListFilters } from "@/lib/exercise-filters";
 import { resolveExerciseDisplayName } from "@/lib/exercise-display-name";
@@ -86,61 +86,97 @@ export default function ExercisesPage() {
   );
 
   return (
-    <main className="min-h-dvh bg-background">
-      <div className="mx-auto w-full max-w-lg px-2 py-6 sm:px-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold tracking-tight text-foreground">
-            {t("title")}
-          </h1>
+    <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-background">
+      <div className="mx-auto w-full max-w-[90rem] px-3 py-6 sm:px-5 lg:px-8 lg:py-9 xl:px-10">
+        <header className="flex items-start justify-between gap-5">
+          <div>
+            <p className="text-sm font-medium text-primary">
+              {t("libraryEyebrow")}
+            </p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-foreground lg:text-3xl">
+              {t("title")}
+            </h1>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+              {t("libraryDescription")}
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => setCreateOpen(true)}
             aria-label={t("newExercise")}
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground transition-all hover:brightness-110 active:scale-[0.97]"
+            className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
             <Plus className="size-4" strokeWidth={2.5} aria-hidden />
-            <span>{t("newExerciseShort")}</span>
+            <span className="hidden sm:inline">{t("newExercise")}</span>
+            <span className="sm:hidden">{t("newExerciseShort")}</span>
           </button>
-        </div>
+        </header>
 
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t("searchPlaceholder")}
-          className="mt-4 w-full rounded-lg border border-border bg-card px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground outline-none focus:border-primary"
-        />
+        <div className="mt-8 grid gap-6 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-8">
+          <aside className="lg:border-border lg:border-r lg:pr-6">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <SlidersHorizontal className="size-4 text-primary" aria-hidden />
+              {t("libraryFilters")}
+            </div>
+            <ExerciseFilterChips
+              options={muscleGroups}
+              selected={filter}
+              onSelect={setFilter}
+              className="mt-4 lg:flex-col lg:items-stretch lg:gap-1.5"
+              translateLabel={(key) => t(key)}
+              allLabel={t("filterAll")}
+            />
+          </aside>
 
-        <ExerciseFilterChips
-          options={muscleGroups}
-          selected={filter}
-          onSelect={setFilter}
-          className="mt-3"
-          translateLabel={(key) => t(key)}
-          allLabel={t("filterAll")}
-        />
+          <section className="min-w-0">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <label className="relative block min-w-0 flex-1">
+                <Search
+                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden
+                />
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={t("searchPlaceholder")}
+                  className="h-11 w-full rounded-lg border border-border bg-card pl-10 pr-3 text-base text-foreground placeholder:text-muted-foreground outline-none transition-colors focus:border-primary"
+                />
+              </label>
+              <p className="shrink-0 text-sm text-muted-foreground">
+                {loading ? t("loading") : t("resultCount", { count: exercises.length })}
+              </p>
+            </div>
 
-        <div className="mt-5">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {t("allExercises")}
-          </h2>
+            <div className="mt-5 overflow-hidden rounded-xl border border-border bg-card">
+              <div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(8rem,0.75fr)_minmax(8rem,0.75fr)_6rem] gap-4 border-border border-b bg-muted/35 px-5 py-3 lg:grid">
+                <span className="text-xs font-semibold text-muted-foreground">{t("nameColumn")}</span>
+                <span className="text-xs font-semibold text-muted-foreground">{t("muscleGroupColumn")}</span>
+                <span className="text-xs font-semibold text-muted-foreground">{t("equipmentColumn")}</span>
+                <span className="text-xs font-semibold text-muted-foreground">{t("sourceColumn")}</span>
+              </div>
 
-          {loading ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              {t("loading")}
-            </p>
-          ) : exercises.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              {t("noResults")}
-            </p>
-          ) : (
-            <div className="mt-2 flex flex-col gap-1">
-              {exercises.map((ex) => (
+              {loading ? (
+                <div className="divide-y divide-border">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <div key={index} className="h-16 animate-pulse bg-card px-5 py-4">
+                      <div className="h-3 w-1/3 rounded bg-muted" />
+                    </div>
+                  ))}
+                </div>
+              ) : exercises.length === 0 ? (
+                <div className="flex flex-col items-center justify-center px-5 py-16 text-center">
+                  <Dumbbell className="size-6 text-primary" aria-hidden />
+                  <p className="mt-3 text-sm text-muted-foreground">{t("noResults")}</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {exercises.map((ex) => (
                 <div
                   key={ex.id}
-                  className="flex items-center justify-between rounded-lg px-3 py-2.5 transition-colors hover:bg-muted/50"
+                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-3.5 transition-colors hover:bg-muted/35 sm:px-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(8rem,0.75fr)_minmax(8rem,0.75fr)_6rem]"
                 >
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-foreground">
                       {resolveExerciseDisplayName(
                         tCatalog,
@@ -150,7 +186,7 @@ export default function ExercisesPage() {
                     </p>
                     <div className="mt-0.5 flex items-center gap-2">
                       {ex.equipment && (
-                        <span className="text-[11px] capitalize text-muted-foreground">
+                        <span className="text-[11px] capitalize text-muted-foreground lg:hidden">
                           {t(ex.equipment)}
                         </span>
                       )}
@@ -162,14 +198,22 @@ export default function ExercisesPage() {
                     </div>
                   </div>
                   {ex.muscleGroup && (
-                    <span className="shrink-0 text-[11px] capitalize text-muted-foreground">
+                    <span className="hidden text-sm capitalize text-muted-foreground lg:block">
                       {t(ex.muscleGroup)}
                     </span>
                   )}
+                  <span className="hidden text-sm capitalize text-muted-foreground lg:block">
+                    {ex.equipment ? t(ex.equipment) : "—"}
+                  </span>
+                  <span className="text-right text-[11px] font-medium text-muted-foreground lg:text-left">
+                    {ex.isSystem ? t("catalogSource") : t("customSource")}
+                  </span>
                 </div>
-              ))}
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+          </section>
         </div>
       </div>
 
