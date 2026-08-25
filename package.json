@@ -8,19 +8,29 @@
     "node": ">=20 <23"
   },
   "scripts": {
-    "dev": "pnpm dev:api & pnpm dev:web",
+    "dev": "pnpm build:tokens && (pnpm dev:api & pnpm dev:web)",
     "dev:api": "PORT=3001 pnpm --filter @gymflow/api run start:dev",
     "dev:web": "pnpm --filter @gymflow/web run dev",
     "db:seed": "pnpm --filter @gymflow/api run db:seed",
+    "build:tokens": "tsx scripts/build-tokens.mts",
+    "turbo:dev": "turbo run dev",
+    "turbo:build": "turbo run build",
+    "turbo:typecheck": "turbo run typecheck",
+    "turbo:lint": "turbo run lint",
+    "turbo:test": "turbo run test",
     "prisma:generate:api": "sh -c 'cd apps/api && DATABASE_URL=\"${DATABASE_URL:-postgresql://127.0.0.1:5432/_prisma_generate}\" pnpm exec prisma generate'",
     "lint:mvp": "pnpm --filter @gymflow/web exec eslint src --max-warnings 0 && pnpm prisma:generate:api && pnpm --filter @gymflow/api run lint:check",
     "typecheck:mvp": "pnpm --filter @gymflow/web exec tsc --noEmit && pnpm --filter @gymflow/api exec tsc --noEmit -p tsconfig.json",
     "test:mvp": "pnpm --filter @gymflow/web run test && pnpm --filter @gymflow/api run test",
-    "build:mvp": "pnpm --filter @gymflow/web run build && pnpm --filter @gymflow/api run build",
+    "build:mvp": "pnpm build:tokens && pnpm --filter @gymflow/web run build && pnpm --filter @gymflow/api run build",
     "prisma:validate:mvp": "sh -c 'cd apps/api && DATABASE_URL=\"${DATABASE_URL:-postgresql://127.0.0.1:5432/_prisma_validate}\" pnpm exec prisma validate'",
     "validate:mvp": "pnpm lint:mvp && pnpm typecheck:mvp && pnpm test:mvp && pnpm build:mvp && pnpm prisma:validate:mvp && pnpm --filter @gymflow/api run db:sanity",
     "validate:mvp:no-db": "pnpm lint:mvp && pnpm typecheck:mvp && pnpm test:mvp && pnpm build:mvp && pnpm prisma:validate:mvp",
     "sync-version": "node scripts/sync-package-versions.mjs"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "turbo": "^2.5.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
