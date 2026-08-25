@@ -16,15 +16,32 @@ type WorkoutHeaderProps = {
 };
 
 function formatElapsed(ms: number) {
-  const totalSeconds = Math.floor(ms / 1000);
-  const m = Math.floor(totalSeconds / 60);
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
   const s = totalSeconds % 60;
+  if (h > 0) {
+    return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+// Module-level snapshot so server and initial client render are identical (both 0),
+// avoiding SSR/CSR hydration mismatches. Real time is populated on first tick after mount.
+let timerSnapshot = 0;
+
 function subscribeToTimer(cb: () => void) {
-  const id = setInterval(cb, 1000);
+  const tick = () => {
+    timerSnapshot = Date.now();
+    cb();
+  };
+  tick();
+  const id = setInterval(tick, 1000);
   return () => clearInterval(id);
+}
+
+function getTimerSnapshot() {
+  return timerSnapshot;
 }
 
 function getServerElapsed() {
@@ -41,58 +58,45 @@ export function WorkoutHeader({
 }: WorkoutHeaderProps) {
   const locale = useLocale();
   const start = new Date(startedAt).getTime();
-  const elapsed = useSyncExternalStore(
+  const currentTime = useSyncExternalStore(
     subscribeToTimer,
-    () => Date.now() - start,
-    () => getServerElapsed(),
+    getTimerSnapshot,
+    getServerElapsed,
   );
-
-  const timerEl = (
-    <p
-      className="w-full font-mono text-sm tabular-nums text-muted-foreground sm:text-base"
-      aria-live="polite"
-      aria-atomic="true"
-    >
-      {formatElapsed(elapsed)}
-    </p>
-  );
+  const elapsed = currentTime === 0 ? 0 : Math.max(0, currentTime - start);
 
   return (
-    <div className={cn("flex flex-col gap-2 px-0 pt-1 pb-0", className)}>
-      <div className="flex items-start justify-between gap-2">
-        {backHref ? (
-          <div className="flex min-w-0 flex-1 items-start gap-1.5 sm:gap-2">
-            <Link
-              href={`/${locale}${backHref}`}
-              className="shrink-0 rounded-lg p-1.5 text-primary transition-colors hover:bg-primary/10 active:scale-[0.98]"
-              aria-label={backAriaLabel ?? "Back"}
-            >
-              <ChevronLeft
-                className="size-[22px]"
-                strokeWidth={2.25}
-                aria-hidden
-              />
-            </Link>
-            <h1 className="min-w-0 flex-1 text-base font-bold leading-tight tracking-tight text-foreground">
-              {workoutName}
-            </h1>
-          </div>
-        ) : (
-          <h1 className="min-w-0 flex-1 text-base font-bold leading-tight tracking-tight text-foreground">
-            {workoutName}
-          </h1>
-        )}
-        {onPause && (
-          <button
-            type="button"
-            onClick={onPause}
-            className="shrink-0 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted"
-          >
-            Pause
-          </button>
-        )}
+    <div className={cn("flex items-center gap-3", className)}>
+      {backHref ? (
+        <Link
+          href={`/${locale}${backHref}`}
+          className="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          aria-label={backAriaLabel ?? "Back"}
+        >
+          <ChevronLeft className="size-5" strokeWidth={2.25} aria-hidden />
+        </Link>
+      ) : null}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {workoutName}
+        </p>
+        <p
+          className="font-display text-3xl font-bold tabular-nums leading-none text-foreground sm:text-4xl"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {formatElapsed(elapsed)}
+        </p>
       </div>
-      {timerEl}
+      {onPause && (
+        <button
+          type="button"
+          onClick={onPause}
+          className="shrink-0 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          Pause
+        </button>
+      )}
     </div>
   );
 }
