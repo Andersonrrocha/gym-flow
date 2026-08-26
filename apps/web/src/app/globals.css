@@ -99,7 +99,6 @@ html {
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-glow-primary: var(--shadow-glow-primary);
-  --shadow-glow-accent: var(--shadow-glow-accent);
   --shadow-glow-success: var(--shadow-glow-success);
 
   /* Easings */
