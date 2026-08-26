@@ -1,121 +1,144 @@
+/**
+ * Direção "Painel" — frio, denso, âmbar.
+ *
+ * Regra central: um papel, dois valores. O âmbar não é o mesmo hex nos dois
+ * modos — #F0703A brilha no escuro e lava sobre branco, então o claro usa
+ * uma versão mais profunda do mesmo matiz (~18°). Mesma marca, contraste
+ * correto em cada fundo.
+ *
+ * Um acento só. Se algo precisa de destaque e não é o âmbar, a resposta é
+ * hierarquia (peso, tamanho, espaço), não uma segunda cor.
+ */
+
+/** Âmbar — o único acento de marca. */
 export const brand = {
-  50: "#f5f3ff",
-  100: "#ede9fe",
-  200: "#ddd6fe",
-  300: "#c4b5fd",
-  400: "#a78bfa",
-  500: "#8b5cf6",
-  600: "#7c3aed",
-  700: "#6d28d9",
-  800: "#5b21b6",
-  900: "#4c1d95",
-  950: "#2e1065",
+  50: "#FEF4EF",
+  100: "#FDE6DA",
+  200: "#FACAB4",
+  300: "#F7A886",
+  400: "#F38A5C",
+  500: "#F0703A", // acento no modo escuro
+  600: "#DE5B22",
+  700: "#C9511C", // acento no modo claro
+  800: "#A03F16",
+  900: "#7C3313",
+  950: "#431807",
 } as const;
 
+/**
+ * Secundária de dado. NÃO é acento de UI — existe só para gráficos que
+ * precisam de uma segunda série. Dessaturada de propósito, para nunca
+ * competir com o âmbar.
+ */
 export const accentScale = {
-  50: "#f7fee7",
-  100: "#ecfccb",
-  200: "#d9f99d",
-  300: "#bef264",
-  400: "#a3e635",
-  500: "#84cc16",
-  600: "#65a30d",
-  700: "#4d7c0f",
-  800: "#3f6212",
-  900: "#365314",
-  950: "#1a2e05",
+  50: "#F1F6F5",
+  100: "#DDE9E6",
+  200: "#BCD3CE",
+  300: "#93B6AF",
+  400: "#6B9890",
+  500: "#4E7C74",
+  600: "#3E6B5C",
+  700: "#33564B",
+  800: "#2B453D",
+  900: "#243A34",
+  950: "#12211D",
 } as const;
 
+/** Neutros frios, com viés levemente azul-esverdeado. Escolhidos, não herdados. */
 export const neutral = {
-  50: "#fafafa",
-  100: "#f5f5f5",
-  200: "#e5e5e5",
-  300: "#d4d4d4",
-  400: "#a3a3a3",
-  500: "#737373",
-  600: "#525252",
-  700: "#404040",
-  800: "#262626",
-  900: "#171717",
-  950: "#0a0a0a",
+  50: "#F7F8F8",
+  100: "#EDEFEF",
+  200: "#DDE1E1",
+  300: "#C3C9CA",
+  400: "#98A2A8",
+  500: "#78838A",
+  600: "#566065",
+  700: "#3D464A",
+  800: "#262E31",
+  900: "#12181A",
+  950: "#0A0D0E",
 } as const;
 
 export const lightTokens = {
-  background: "#ffffff",
-  foreground: neutral[950],
-  card: "#ffffff",
-  cardForeground: neutral[950],
-  cardElevated: neutral[50],
+  background: neutral[50],
+  foreground: "#12181B",
+  card: "#FFFFFF",
+  cardForeground: "#12181B",
+  cardElevated: neutral[100],
   muted: neutral[100],
   mutedForeground: neutral[600],
-  border: neutral[200],
+  border: "#E2E6E6",
   borderStrong: neutral[300],
-  input: neutral[200],
-  ring: brand[500],
+  input: "#E2E6E6",
+  ring: brand[600],
   primary: brand[700],
-  primaryForeground: "#ffffff",
-  primarySoft: brand[100],
+  primaryForeground: "#FFFFFF",
+  primarySoft: "#FBEDE6",
   primarySoftForeground: brand[800],
   accent: accentScale[600],
-  accentForeground: "#ffffff",
-  destructive: "#dc2626",
-  destructiveForeground: "#ffffff",
-  destructiveSoft: "#fee2e2",
-  success: "#16a34a",
-  successForeground: "#ffffff",
-  successSoft: "#dcfce7",
-  warning: "#d97706",
-  warningForeground: "#ffffff",
-  warningSoft: "#fef3c7",
-  info: "#2563eb",
-  infoForeground: "#ffffff",
-  infoSoft: "#dbeafe",
-  ringOffsetBackground: "#ffffff",
+  accentForeground: "#FFFFFF",
+  destructive: "#B4291F",
+  destructiveForeground: "#FFFFFF",
+  destructiveSoft: "#FBE9E7",
+  success: "#1F7A4D",
+  successForeground: "#FFFFFF",
+  successSoft: "#E4F2EA",
+  warning: "#96650C",
+  warningForeground: "#FFFFFF",
+  warningSoft: "#FAF0DC",
+  info: "#1F5FA8",
+  infoForeground: "#FFFFFF",
+  infoSoft: "#E6EEF8",
+  ringOffsetBackground: neutral[50],
 } as const;
 
 export const darkTokens = {
   background: neutral[950],
-  foreground: neutral[50],
+  foreground: "#E4E9EC",
   card: neutral[900],
-  cardForeground: neutral[50],
-  cardElevated: neutral[800],
-  muted: neutral[800],
+  cardForeground: "#E4E9EC",
+  cardElevated: "#1A2225",
+  muted: "#1E2426",
   mutedForeground: neutral[400],
-  border: neutral[800],
-  borderStrong: neutral[700],
-  input: neutral[800],
+  border: "#1E2426",
+  borderStrong: "#2C3437",
   ring: brand[500],
-  primary: brand[600],
-  primaryForeground: "#ffffff",
-  primarySoft: "rgba(124, 58, 237, 0.16)",
+  primary: brand[500],
+  primaryForeground: "#FFFFFF",
+  primarySoft: "rgba(240, 112, 58, 0.14)",
   primarySoftForeground: brand[300],
-  accent: accentScale[400],
+  accent: accentScale[300],
   accentForeground: neutral[950],
-  destructive: "#ef4444",
-  destructiveForeground: neutral[50],
-  destructiveSoft: "rgba(239, 68, 68, 0.12)",
-  success: "#22c55e",
+  destructive: "#F06A5E",
+  destructiveForeground: neutral[950],
+  destructiveSoft: "rgba(240, 106, 94, 0.13)",
+  success: "#52C48A",
   successForeground: neutral[950],
-  successSoft: "rgba(34, 197, 94, 0.14)",
-  warning: "#f59e0b",
+  successSoft: "rgba(82, 196, 138, 0.14)",
+  warning: "#D8AC52",
   warningForeground: neutral[950],
-  warningSoft: "rgba(245, 158, 11, 0.14)",
-  info: "#60a5fa",
+  warningSoft: "rgba(216, 172, 82, 0.14)",
+  info: "#6BA6E8",
   infoForeground: neutral[950],
-  infoSoft: "rgba(96, 165, 250, 0.14)",
+  infoSoft: "rgba(107, 166, 232, 0.14)",
   ringOffsetBackground: neutral[950],
 } as const;
 
+/**
+ * Cor categórica por grupo muscular. Usada só como faixa/indicador —
+ * nunca como fundo de área grande, nunca competindo com o âmbar.
+ * Saturação contida para conviver com o fundo frio.
+ */
 export const muscleGroupColors = {
-  chest: "#ef4444",
-  back: "#3b82f6",
-  shoulders: "#f59e0b",
-  biceps: "#a855f7",
-  triceps: "#ec4899",
-  legs: "#22c55e",
-  core: "#06b6d4",
-  glutes: "#f97316",
-  cardio: "#10b981",
+  chest: "#D2564B",
+  back: "#3B7BC4",
+  shoulders: "#C88A2E",
+  biceps: "#8B5FC0",
+  triceps: "#C0568F",
+  legs: "#3F9A63",
+  core: "#2A93A8",
+  glutes: "#D0743A",
+  cardio: "#2FA083",
 } as const;
 
 export type SemanticTokenName = keyof typeof darkTokens;

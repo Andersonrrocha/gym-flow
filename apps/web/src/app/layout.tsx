@@ -1,20 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Archivo, JetBrains_Mono } from "next/font/google";
 import { getLocale } from "next-intl/server";
 import { PwaRegisterSW } from "@/components/pwa-register-sw";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
-const fontBody = Inter({
+// Archivo carrega interface e títulos — o eixo de largura diferencia os dois.
+// JetBrains Mono aparece só em dado: carga, repetição, tempo, data.
+const fontBody = Archivo({
   subsets: ["latin"],
+  axes: ["wdth"],
   variable: "--font-body",
   display: "swap",
 });
 
-const fontDisplay = Space_Grotesk({
+const fontMono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-display",
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -44,7 +47,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${fontBody.variable} ${fontDisplay.variable}`}
+      className={`${fontBody.variable} ${fontMono.variable}`}
       suppressHydrationWarning
     >
       <body className="antialiased">
