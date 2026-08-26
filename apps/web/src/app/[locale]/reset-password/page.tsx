@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { ResetPasswordForm } from "@/components/auth/reset-password-form";
-import { BeamsBackground } from "@/components/ui/beams-background";
+import { ShaderBackground } from "@/components/ui/shader-background";
 import { AppLogo } from "@/components/ui/app-logo";
 import { getTranslations } from "next-intl/server";
 
@@ -14,7 +14,7 @@ export default async function ResetPasswordPage() {
   const t = await getTranslations("ResetPassword");
 
   return (
-    <BeamsBackground intensity="medium">
+    <ShaderBackground intensity="medium">
       <main className="w-full px-4 py-8">
         <div className="mx-auto w-full max-w-sm rounded-2xl border border-border/70 bg-card/85 p-6 shadow-2xl backdrop-blur-md sm:max-w-md sm:p-10">
           <div className="mb-8 flex flex-col items-center gap-3">
@@ -32,6 +32,6 @@ export default async function ResetPasswordPage() {
           </Suspense>
         </div>
       </main>
-    </BeamsBackground>
+    </ShaderBackground>
   );
 }
