@@ -8,6 +8,14 @@
  *
  * Um acento só. Se algo precisa de destaque e não é o âmbar, a resposta é
  * hierarquia (peso, tamanho, espaço), não uma segunda cor.
+ *
+ * SEPARAÇÃO DE MATIZ: com âmbar em ~18°, qualquer semântica quente cai perto
+ * dele. `destructive` fica em ~347° (carmim) e não no vermelho puro (~5°),
+ * porque vermelho puro dá só 13° de distância do âmbar — os dois viram o mesmo
+ * sinal num relance. Carmim dá ~30° e continua lendo como "perigo".
+ *
+ * Não confunda os papéis: "precisa de atenção", "atrasado" e "aderência caindo"
+ * são `warning`. `destructive` é só ação destrutiva e erro.
  */
 
 /** Âmbar — o único acento de marca. */
@@ -77,9 +85,9 @@ export const lightTokens = {
   primarySoftForeground: brand[800],
   accent: accentScale[600],
   accentForeground: "#FFFFFF",
-  destructive: "#B4291F",
+  destructive: "#BE1D42",
   destructiveForeground: "#FFFFFF",
-  destructiveSoft: "#FBE9E7",
+  destructiveSoft: "#FCE8ED",
   success: "#1F7A4D",
   successForeground: "#FFFFFF",
   successSoft: "#E4F2EA",
@@ -109,9 +117,9 @@ export const darkTokens = {
   primarySoftForeground: brand[300],
   accent: accentScale[300],
   accentForeground: neutral[950],
-  destructive: "#F06A5E",
+  destructive: "#F2556E",
   destructiveForeground: neutral[950],
-  destructiveSoft: "rgba(240, 106, 94, 0.13)",
+  destructiveSoft: "rgba(242, 85, 110, 0.14)",
   success: "#52C48A",
   successForeground: neutral[950],
   successSoft: "rgba(82, 196, 138, 0.14)",
