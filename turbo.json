@@ -1,0 +1,26 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build", "build:tokens"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+    },
+    "build:tokens": {
+      "outputs": ["apps/web/src/app/tokens.css"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["build:tokens"]
+    },
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "dependsOn": ["^build", "build:tokens"]
+    }
+  }
+}

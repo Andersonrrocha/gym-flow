@@ -1,9 +1,12 @@
 "use client";
 
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import type { SessionSet } from "@/types/workouts";
+import { haptic } from "@/lib/haptic";
+import { useUnits } from "@/lib/units/context";
+import { displayToKg, kgToDisplay } from "@/lib/units/convert";
 
 const noSpinnerClass =
   "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
@@ -19,9 +22,6 @@ type NumericStepFieldProps = {
   completed: boolean;
   inputWidthClass?: string;
 };
-
-const valueTypography =
-  "font-mono text-base font-semibold tabular-nums leading-none sm:text-sm";
 
 function NumericStepField({
   value,
@@ -47,21 +47,16 @@ function NumericStepField({
 
   const display = value === 0 ? "" : String(value);
 
-  const valueColor = completed ? "text-success" : "text-foreground";
-  const stepperColor = completed
-    ? "text-success hover:bg-success/15 active:bg-success/25"
-    : "text-primary hover:bg-primary/15 active:bg-primary/25";
-
   return (
     <div
       className={cn(
-        "flex h-7 shrink-0 items-stretch overflow-hidden rounded-md border bg-background transition-colors sm:h-8",
+        "flex h-11 shrink-0 items-stretch overflow-hidden rounded-xl border bg-background transition-colors",
         completed
-          ? "border-success/40 focus-within:border-success focus-within:ring-1 focus-within:ring-success/35"
-          : "border-border focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30",
+          ? "border-success/40 focus-within:border-success focus-within:ring-2 focus-within:ring-success/30"
+          : "border-input focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/30",
       )}
     >
-      <div className="flex min-w-0 flex-1 items-center justify-center gap-0.5 px-1 sm:gap-1 sm:px-1.5">
+      <div className="flex min-w-0 flex-1 items-center justify-center gap-1 px-2">
         <input
           type="number"
           inputMode={inputMode}
@@ -80,16 +75,14 @@ function NumericStepField({
           className={cn(
             noSpinnerClass,
             inputWidthClass,
-            "min-w-0 shrink-0 border-0 bg-transparent py-0 text-center outline-none",
-            valueTypography,
-            valueColor,
+            "min-w-0 shrink-0 border-0 bg-transparent py-0 text-center font-display text-lg font-bold tabular-nums leading-none outline-none",
+            completed ? "text-success" : "text-foreground",
           )}
         />
         <span
           className={cn(
-            "pointer-events-none shrink-0 select-none",
-            valueTypography,
-            valueColor,
+            "pointer-events-none shrink-0 select-none text-[11px] font-semibold uppercase tracking-wider",
+            completed ? "text-success/80" : "text-muted-foreground",
           )}
         >
           {unit}
@@ -97,10 +90,10 @@ function NumericStepField({
       </div>
       <div
         className={cn(
-          "flex w-6 shrink-0 flex-col sm:w-7",
+          "flex w-9 shrink-0 flex-col border-l",
           completed
-            ? "divide-y divide-success/25 border-l border-success/25"
-            : "divide-y divide-border/80 border-l border-border/80",
+            ? "divide-y divide-success/30 border-success/30"
+            : "divide-y divide-border border-border",
         )}
       >
         <button
@@ -108,30 +101,26 @@ function NumericStepField({
           onClick={() => bump(step)}
           className={cn(
             "flex flex-1 items-center justify-center transition-colors",
-            stepperColor,
+            completed
+              ? "text-success hover:bg-success/15"
+              : "text-primary hover:bg-primary/10",
           )}
           aria-label={ariaIncrease}
         >
-          <ChevronUp
-            className="h-3 w-3 sm:h-3.5 sm:w-3.5"
-            strokeWidth={2.2}
-            aria-hidden
-          />
+          <ChevronUp className="size-4" strokeWidth={2.4} aria-hidden />
         </button>
         <button
           type="button"
           onClick={() => bump(-step)}
           className={cn(
             "flex flex-1 items-center justify-center transition-colors",
-            stepperColor,
+            completed
+              ? "text-success hover:bg-success/15"
+              : "text-primary hover:bg-primary/10",
           )}
           aria-label={ariaDecrease}
         >
-          <ChevronDown
-            className="h-3 w-3 sm:h-3.5 sm:w-3.5"
-            strokeWidth={2.2}
-            aria-hidden
-          />
+          <ChevronDown className="size-4" strokeWidth={2.4} aria-hidden />
         </button>
       </div>
     </div>
@@ -146,7 +135,6 @@ type SetRowProps = {
   onRemove?: (setId: string) => void;
   onUpdateWeight?: (setId: string, weight: number) => void;
   onUpdateReps?: (setId: string, reps: number) => void;
-  weightUnitLabel?: string;
   repsUnitLabel?: string;
   weightDecreaseAria?: string;
   weightIncreaseAria?: string;
@@ -163,7 +151,6 @@ export function SetRow({
   onRemove,
   onUpdateWeight,
   onUpdateReps,
-  weightUnitLabel = "kg",
   repsUnitLabel = "reps",
   weightDecreaseAria = "Decrease weight",
   weightIncreaseAria = "Increase weight",
@@ -171,35 +158,47 @@ export function SetRow({
   repsIncreaseAria = "Increase reps",
   motionDelay = 0,
 }: SetRowProps) {
+  const reduced = useReducedMotion();
+  const { unit } = useUnits();
+  const displayedWeight = kgToDisplay(set.weight, unit);
+  const handleWeightChange = (next: number) => {
+    onUpdateWeight?.(set.id, displayToKg(next, unit));
+  };
+
   return (
     <motion.div
       className={cn(
-        "flex min-w-0 items-center gap-1 rounded-md px-1 py-1.5 transition-colors sm:gap-2 sm:px-2 sm:py-2 md:gap-3 md:px-3",
-        set.completed ? "bg-success/10" : "bg-muted/40",
+        "flex min-w-0 items-center gap-2 rounded-xl border px-2 py-2 transition-colors sm:gap-3 sm:px-3",
+        set.completed
+          ? "border-success/30 bg-success-soft"
+          : "border-transparent bg-muted/40",
       )}
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={reduced ? false : { opacity: 0, y: 6 }}
+      animate={reduced ? false : { opacity: 1, y: 0 }}
       transition={{
         duration: 0.22,
-        delay: motionDelay,
+        delay: reduced ? 0 : motionDelay,
         ease: [0.25, 0.46, 0.45, 0.94],
       }}
     >
       <span
         className={cn(
-          "w-4 shrink-0 text-center font-mono text-[10px] font-bold tabular-nums sm:w-5 sm:text-xs md:w-6",
-          set.completed ? "text-success" : "text-muted-foreground",
+          "inline-flex size-7 shrink-0 items-center justify-center rounded-full font-display text-xs font-bold tabular-nums",
+          set.completed
+            ? "bg-success/20 text-success"
+            : "bg-muted text-muted-foreground",
         )}
+        aria-hidden
       >
         {set.setNumber}
       </span>
 
       <NumericStepField
-        value={set.weight}
-        onChange={(n) => onUpdateWeight?.(set.id, n)}
-        step={0.5}
+        value={displayedWeight}
+        onChange={handleWeightChange}
+        step={unit === "kg" ? 0.5 : 1}
         inputMode="decimal"
-        unit={weightUnitLabel}
+        unit={unit}
         ariaDecrease={weightDecreaseAria}
         ariaIncrease={weightIncreaseAria}
         completed={set.completed}
@@ -208,9 +207,10 @@ export function SetRow({
 
       <span
         className={cn(
-          "shrink-0 px-0.5 text-[10px] sm:text-xs",
-          set.completed ? "text-success/80" : "text-muted-foreground",
+          "shrink-0 text-base font-semibold",
+          set.completed ? "text-success/70" : "text-muted-foreground",
         )}
+        aria-hidden
       >
         ×
       </span>
@@ -224,34 +224,47 @@ export function SetRow({
         ariaDecrease={repsDecreaseAria}
         ariaIncrease={repsIncreaseAria}
         completed={set.completed}
-        inputWidthClass="w-[2.25ch] sm:w-[2.5ch]"
+        inputWidthClass="w-[2.75ch]"
       />
 
-      {canRemove && (
+      <div className="ml-auto flex shrink-0 items-center gap-1.5">
+        {canRemove && (
+          <button
+            type="button"
+            onClick={() => onRemove?.(set.id)}
+            className="inline-flex size-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-destructive/60 hover:bg-destructive-soft hover:text-destructive"
+            aria-label={removeLabel}
+            title={removeLabel}
+          >
+            <Minus className="size-4" strokeWidth={2.4} aria-hidden />
+          </button>
+        )}
+
         <button
           type="button"
-          onClick={() => onRemove?.(set.id)}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border text-[10px] text-muted-foreground transition-all hover:border-destructive/50 hover:text-destructive sm:h-7 sm:w-7 sm:text-[11px]"
-          aria-label={removeLabel}
-          title={removeLabel}
+          onClick={() => {
+            if (!set.completed) haptic("success");
+            onToggle?.(set.id);
+          }}
+          aria-label={set.completed ? "Unmark set" : "Complete set"}
+          aria-pressed={set.completed}
+          className={cn(
+            "inline-flex size-10 shrink-0 items-center justify-center rounded-xl border transition-all active:scale-[0.94]",
+            set.completed
+              ? "border-success bg-success text-success-foreground shadow-md"
+              : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary",
+          )}
         >
-          -
+          <Check
+            className={cn("size-4 transition-transform", {
+              "scale-100": set.completed,
+              "scale-0": !set.completed,
+            })}
+            strokeWidth={3}
+            aria-hidden
+          />
         </button>
-      )}
-
-      <button
-        type="button"
-        onClick={() => onToggle?.(set.id)}
-        aria-label={set.completed ? "Unmark set" : "Complete set"}
-        className={cn(
-          "ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-[10px] transition-all sm:h-7 sm:w-7 sm:text-xs",
-          set.completed
-            ? "border-success bg-success text-success-foreground"
-            : "border-border text-muted-foreground hover:border-primary/50",
-        )}
-      >
-        {set.completed ? "✓" : ""}
-      </button>
+      </div>
     </motion.div>
   );
 }

@@ -1,4 +1,4 @@
-import { Zap } from "lucide-react";
+import { Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type TrainingStreakProps = {
@@ -15,19 +15,19 @@ export function TrainingStreak({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-1.5",
+        "inline-flex h-9 items-center gap-1.5 rounded-full border border-warning/40 bg-warning-soft px-3 text-warning",
         className,
       )}
+      aria-label={`${count} ${label}`}
+      title={`${count} ${label}`}
     >
-      <span className="inline-flex text-primary opacity-90">
-        <Zap className="size-4" aria-hidden />
+      <Flame className="size-4" strokeWidth={2.4} aria-hidden />
+      <span className="font-display text-sm font-bold tabular-nums">
+        {count}
       </span>
-      <div className="flex items-baseline gap-1">
-        <span className="font-mono text-sm font-bold tabular-nums text-foreground">
-          {count}
-        </span>
-        <span className="text-[11px] text-muted-foreground">{label}</span>
-      </div>
+      <span className="text-[11px] font-medium text-warning/80 hidden sm:inline">
+        {label}
+      </span>
     </div>
   );
 }

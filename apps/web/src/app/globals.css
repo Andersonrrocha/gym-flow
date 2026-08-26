@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./tokens.css";
 
 html {
   -webkit-text-size-adjust: 100%;
@@ -13,41 +14,6 @@ html {
 :root {
   --app-safe-top: env(safe-area-inset-top, 0px);
   --app-safe-bottom: env(safe-area-inset-bottom, 0px);
-  --background: #ffffff;
-  --foreground: #171717;
-  --card: #ffffff;
-  --card-foreground: #171717;
-  --muted: #f5f5f5;
-  --muted-foreground: #737373;
-  --border: #e5e5e5;
-  --input: #e5e5e5;
-  --ring: #a3a3a3;
-  --primary: #6d28d9;
-  --primary-foreground: #ffffff;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --ring-offset-background: #ffffff;
-}
-
-.dark {
-  --background: #0a0a0a;
-  --foreground: #fafafa;
-  --card: #171717;
-  --card-foreground: #fafafa;
-  --muted: #262626;
-  --muted-foreground: #a3a3a3;
-  --border: #262626;
-  --input: #262626;
-  --ring: #525252;
-  --primary: #7c3aed;
-  --primary-foreground: #ffffff;
-  --destructive: #dc2626;
-  --destructive-foreground: #fafafa;
-  --accent: #a3e635;
-  --accent-foreground: #0a0a0a;
-  --success: #22c55e;
-  --success-foreground: #ffffff;
-  --ring-offset-background: #0a0a0a;
 }
 
 @media (display-mode: standalone), (display-mode: fullscreen) {
@@ -61,28 +27,218 @@ html {
 }
 
 @theme inline {
+  /* Semantic colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-card-elevated: var(--card-elevated);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-foreground: var(--primary-soft-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-soft: var(--destructive-soft);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-soft: var(--info-soft);
   --color-ring-offset-background: var(--ring-offset-background);
+
+  /* Brand scale (purple) */
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+  --color-brand-950: var(--brand-950);
+
+  /* Muscle group colors */
+  --color-muscle-chest: var(--muscle-chest);
+  --color-muscle-back: var(--muscle-back);
+  --color-muscle-shoulders: var(--muscle-shoulders);
+  --color-muscle-biceps: var(--muscle-biceps);
+  --color-muscle-triceps: var(--muscle-triceps);
+  --color-muscle-legs: var(--muscle-legs);
+  --color-muscle-core: var(--muscle-core);
+  --color-muscle-glutes: var(--muscle-glutes);
+  --color-muscle-cardio: var(--muscle-cardio);
+
+  /* Radii */
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-3xl: var(--radius-3xl);
+
+  /* Shadows */
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-glow-primary: var(--shadow-glow-primary);
+  --shadow-glow-accent: var(--shadow-glow-accent);
+  --shadow-glow-success: var(--shadow-glow-success);
+
+  /* Easings */
+  --ease-out-soft: var(--ease-out);
+  --ease-in-out-soft: var(--ease-in-out);
+  --ease-emphasized: var(--ease-emphasized);
+  --ease-spring: var(--ease-spring);
+
+  /* Durations */
+  --duration-fast: var(--duration-fast);
+  --duration-base: var(--duration-base);
+  --duration-slow: var(--duration-slow);
+  --duration-ambient: var(--duration-ambient);
+
+  /* Font families */
+  --font-sans: var(--font-family-body);
+  --font-display: var(--font-family-display);
+  --font-mono: var(--font-family-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-family: var(--font-family-body);
+  font-feature-settings:
+    "ss01" on,
+    "cv11" on;
+}
+
+/* Dialog / sheet motion (Radix data-state driven) */
+@keyframes gf-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes gf-overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes gf-dialog-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes gf-dialog-out {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
+}
+@keyframes gf-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes gf-sheet-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+.gf-dialog-overlay[data-state="open"] {
+  animation: gf-overlay-in 200ms var(--ease-out) both;
+}
+.gf-dialog-overlay[data-state="closed"] {
+  animation: gf-overlay-out 150ms var(--ease-out) both;
+}
+.gf-dialog-content[data-state="open"] {
+  animation: gf-dialog-in 220ms var(--ease-out) both;
+}
+.gf-dialog-content[data-state="closed"] {
+  animation: gf-dialog-out 160ms var(--ease-out) both;
+}
+.gf-dialog-sheet[data-state="open"] {
+  animation: gf-sheet-in 280ms var(--ease-out) both;
+}
+.gf-dialog-sheet[data-state="closed"] {
+  animation: gf-sheet-out 200ms var(--ease-out) both;
+}
+
+/* Popover/dropdown motion — opacity only so we don't fight Radix transform-based positioning */
+@keyframes gf-popover-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes gf-popover-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+.gf-popover-content[data-state="open"] {
+  animation: gf-popover-in 140ms var(--ease-out) both;
+}
+.gf-popover-content[data-state="closed"] {
+  animation: gf-popover-out 100ms var(--ease-out) both;
+}
+
+
+/* Respect users who prefer less motion: tame animations and disable parallax-ish effects */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

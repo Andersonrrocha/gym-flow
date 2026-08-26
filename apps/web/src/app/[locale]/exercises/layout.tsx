@@ -10,7 +10,7 @@ export default function ExercisesLayout({ children }: ExercisesLayoutProps) {
     <div className="flex min-h-dvh">
       <DesktopSidebar />
 
-      <div className="flex flex-1 flex-col pt-(--app-safe-top) pb-[calc(3.5rem+(--app-safe-bottom))] lg:pb-0 lg:pt-0">
+      <div className="flex flex-1 flex-col pt-(--app-safe-top) pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:pb-0 lg:pt-0">
         {children}
       </div>
 

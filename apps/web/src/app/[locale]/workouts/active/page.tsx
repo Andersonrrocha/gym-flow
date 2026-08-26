@@ -10,6 +10,11 @@ import { WorkoutProgress } from "@/components/workouts/WorkoutProgress";
 import { ExerciseBlock } from "@/components/workouts/ExerciseBlock";
 import { ExerciseHistoryModal } from "@/components/workouts/ExerciseHistoryModal";
 import { PrimaryButton } from "@/components/workouts/primary-button";
+import { RestTimer } from "@/components/workouts/rest-timer";
+import {
+  RestTimerProvider,
+  useRestTimer,
+} from "@/lib/rest-timer/context";
 import {
   getActiveSession,
   saveActiveSession,
@@ -31,6 +36,7 @@ import {
   logSessionSetApi,
   mergeRemoteAndLocalSessions,
 } from "@/lib/api/session-api";
+import { toastError, toastSuccess } from "@/lib/toast";
 import type { WorkoutSession } from "@/types/workouts";
 
 const PLACEHOLDER_SESSION: WorkoutSession = {
@@ -44,11 +50,21 @@ const PLACEHOLDER_SESSION: WorkoutSession = {
 };
 
 export default function ActiveWorkoutPage() {
+  return (
+    <RestTimerProvider>
+      <ActiveWorkoutInner />
+    </RestTimerProvider>
+  );
+}
+
+function ActiveWorkoutInner() {
   const t = useTranslations("WorkoutActive");
+  const tToast = useTranslations("Toast");
   const tCatalog = useTranslations("Exercises.catalog");
   const locale = useLocale();
   const router = useRouter();
   const client = useApolloClient();
+  const restTimer = useRestTimer();
 
   const [session, setSession] = useState<WorkoutSession>(PLACEHOLDER_SESSION);
   const [sessionHydrated, setSessionHydrated] = useState(false);
@@ -174,11 +190,13 @@ export default function ActiveWorkoutPage() {
               localSetId: string;
             }
           | undefined;
+        let nowCompleted = false;
 
         for (const ex of prev.exercises) {
           const s = ex.sets.find((x) => x.id === setId);
           if (!s) continue;
           const nextCompleted = !s.completed;
+          nowCompleted = nextCompleted;
           if (nextCompleted && prev.backendSynced && !s.syncedToBackend) {
             sync = {
               sessionExerciseId: ex.id,
@@ -189,6 +207,10 @@ export default function ActiveWorkoutPage() {
             };
           }
           break;
+        }
+
+        if (nowCompleted && restTimer.enabled) {
+          queueMicrotask(() => restTimer.start());
         }
 
         const next: WorkoutSession = {
@@ -233,7 +255,7 @@ export default function ActiveWorkoutPage() {
         return next;
       });
     },
-    [client],
+    [client, restTimer],
   );
 
   const handleUpdateWeight = useCallback((setId: string, weight: number) => {
@@ -326,13 +348,17 @@ export default function ActiveWorkoutPage() {
       finishedAt: new Date().toISOString(),
     };
 
-    if (session.backendSynced) {
-      await finishWorkoutSessionApi(client, session.id);
+    try {
+      if (session.backendSynced) {
+        await finishWorkoutSessionApi(client, session.id);
+      }
+      saveWorkoutSession(completedSession);
+      clearActiveSession();
+      toastSuccess(tToast("workoutFinishedTitle"));
+      router.push(`/${locale}/workouts/summary?sessionId=${session.id}`);
+    } catch {
+      toastError(tToast("workoutFinishFailed"));
     }
-
-    saveWorkoutSession(completedSession);
-    clearActiveSession();
-    router.push(`/${locale}/workouts/summary?sessionId=${session.id}`);
   };
 
   return (
@@ -424,31 +450,41 @@ export default function ActiveWorkoutPage() {
         </div>
       </div>
 
-      <div className="fixed bottom-[calc(3.5rem+(--app-safe-bottom))] left-0 right-0 z-30 border-t border-border bg-background/80 backdrop-blur-md lg:hidden">
-        {nextExercise && (
-          <div className="border-b border-border/30 px-2 py-2 sm:px-4">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              {t("upNext")}
-            </p>
-            <p className="text-sm font-semibold text-foreground/80">
-              {nextExerciseLabel}
-            </p>
+      <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom,0px))] left-0 right-0 z-30 lg:hidden">
+        <RestTimer />
+        <div className="border-t border-border bg-background/85 backdrop-blur-md">
+          {nextExercise && (
+            <div className="border-b border-border/30 px-2 py-2 sm:px-4">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {t("upNext")}
+              </p>
+              <p className="text-sm font-semibold text-foreground/80">
+                {nextExerciseLabel}
+              </p>
+            </div>
+          )}
+          <div className="w-full px-2 py-3 sm:px-4">
+            <PrimaryButton
+              size="lg"
+              className="w-full"
+              onClick={handleFinish}
+              disabled={!allExercisesDone}
+              aria-disabled={!allExercisesDone}
+            >
+              {allExercisesDone
+                ? t("finishWorkout")
+                : t("exercisesRemaining", {
+                    count: totalExercises - completedCount,
+                  })}
+            </PrimaryButton>
           </div>
-        )}
-        <div className="w-full px-2 py-3 sm:px-4">
-          <PrimaryButton
-            size="lg"
-            className="w-full"
-            onClick={handleFinish}
-            disabled={!allExercisesDone}
-            aria-disabled={!allExercisesDone}
-          >
-            {allExercisesDone
-              ? t("finishWorkout")
-              : t("exercisesRemaining", {
-                  count: totalExercises - completedCount,
-                })}
-          </PrimaryButton>
+        </div>
+      </div>
+
+      {/* Desktop: floating rest timer card in the right column */}
+      <div className="pointer-events-none fixed bottom-6 right-6 z-30 hidden w-[min(360px,90vw)] lg:block">
+        <div className="pointer-events-auto">
+          <RestTimer />
         </div>
       </div>
 
